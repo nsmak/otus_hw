@@ -52,9 +52,51 @@ func TestUnpack(t *testing.T) {
 	}
 }
 
-func TestUnpackWithEscape(t *testing.T) {
-	t.Skip() // Remove if task with asterisk completed
+func TestUnpackWithCyrillicSymbols(t *testing.T) {
+	for _, tst := range [...]test{
+		{
+			input:    `дом`,
+			expected: `дом`,
+		},
+		{
+			input:    `зме3д`,
+			expected: `змееед`,
+		},
+		{
+			input:    "0кно",
+			expected: "",
+			err:      ErrInvalidString,
+		},
+	} {
+		result, err := Unpack(tst.input)
+		require.Equal(t, tst.err, err)
+		require.Equal(t, tst.expected, result)
+	}
+}
 
+func TestUnpackWithUTF8Symbols(t *testing.T) {
+	for _, tst := range [...]test{
+		{
+			input:    `😂3🧐2💩0`,
+			expected: `😂😂😂🧐🧐`,
+		},
+		{
+			input:    `\3😂🧐2\8💩0\5`,
+			expected: `3😂🧐🧐85`,
+		},
+		{
+			input:    `🤬100500`,
+			expected: "",
+			err:      ErrInvalidString,
+		},
+	} {
+		result, err := Unpack(tst.input)
+		require.Equal(t, tst.err, err)
+		require.Equal(t, tst.expected, result)
+	}
+}
+
+func TestUnpackWithEscape(t *testing.T) {
 	for _, tst := range [...]test{
 		{
 			input:    `qwe\4\5`,
