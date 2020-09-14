@@ -43,6 +43,12 @@ var text = `Как видите, он  спускается  по  лестни�
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
 
+var fewWords = "мама мыла раму раму мама ела раму варил Антон"
+
+var symbols = "\n\t\t\t\t\t\n\n\n\n"
+
+var emoji = "🧐 😂\n\n😂\t 😂 🧐\t🧐\n🧐 🎉🎎🏮👌🤨🤗"
+
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
 		require.Len(t, Top10(""), 0)
@@ -56,5 +62,20 @@ func TestTop10(t *testing.T) {
 			expected := []string{"он", "и", "а", "что", "ты", "не", "если", "-", "то", "Кристофер"}
 			require.ElementsMatch(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("a small amount of words", func(t *testing.T) {
+		expected := []string{"раму", "мама", "мыла", "ела", "варил", "Антон"}
+		require.ElementsMatch(t, expected, Top10(fewWords))
+	})
+
+	t.Run("invisible symbols", func(t *testing.T) {
+		var expected []string
+		require.ElementsMatch(t, expected, Top10(symbols))
+	})
+
+	t.Run("emoji", func(t *testing.T) {
+		expected := []string{"🧐", "😂", "🎉🎎🏮👌🤨🤗"}
+		require.ElementsMatch(t, expected, Top10(emoji))
 	})
 }
