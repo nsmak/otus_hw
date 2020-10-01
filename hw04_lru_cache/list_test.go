@@ -63,4 +63,18 @@ func TestList(t *testing.T) {
 		require.NotEqual(t, thirdItem, l.Front())
 		require.Equal(t, secondItem, l.Back())
 	})
+
+	t.Run("actions with item not from the list", func(t *testing.T) {
+		l := NewList()
+
+		firstItem := l.PushFront(10)
+		_ = l.PushBack(11)
+
+		notInListItem := &listItem{value: 22}
+		l.MoveToFront(notInListItem)
+		require.Equal(t, firstItem, l.Front())
+
+		l.Remove(notInListItem)
+		require.Equal(t, 2, l.Len())
+	})
 }

@@ -11,6 +11,7 @@ type List interface {
 }
 
 type listItem struct {
+	list  *list
 	value interface{}
 	next  *listItem
 	prev  *listItem
@@ -76,6 +77,10 @@ func (l *list) PushBack(v interface{}) *listItem {
 
 // Remove удаляет элемент из списка.
 func (l *list) Remove(i *listItem) {
+	if i.list != l {
+		return
+	}
+
 	if i.next == nil {
 		l.back = i.prev
 	} else {
@@ -93,6 +98,9 @@ func (l *list) Remove(i *listItem) {
 
 // MoveToFront перемещает элемент в начало списка.
 func (l *list) MoveToFront(i *listItem) {
+	if i.list != l {
+		return
+	}
 	if i.prev == nil {
 		return
 	}
