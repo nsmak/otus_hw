@@ -50,13 +50,65 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
+		c.Clear()
+
+		val, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, val)
+
+		val, ok = c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
+
+		val, ok = c.Get("ccc")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("preemptive logic", func(t *testing.T) {
+		c := NewCache(2)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
+
+		val, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("preemptive logic II", func(t *testing.T) {
+		c := NewCache(3)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
+
+		_, ok := c.Get("aaa")
+		require.True(t, ok)
+		wasInCache = c.Set("ccc", 105)
+		require.True(t, wasInCache)
+		wasInCache = c.Set("ddd", 106)
+		require.False(t, wasInCache)
+
+		val, ok := c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
 	})
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Skip() // Remove if task with asterisk completed
-
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
