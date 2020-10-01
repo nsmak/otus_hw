@@ -51,9 +51,12 @@ func TestCache(t *testing.T) {
 
 	t.Run("purge logic", func(t *testing.T) {
 		c := NewCache(3)
-		_ = c.Set("aaa", 100)
-		_ = c.Set("bbb", 101)
-		_ = c.Set("ccc", 102)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
 		c.Clear()
 
 		val, ok := c.Get("aaa")
@@ -71,9 +74,12 @@ func TestCache(t *testing.T) {
 
 	t.Run("preemptive logic", func(t *testing.T) {
 		c := NewCache(2)
-		_ = c.Set("aaa", 100)
-		_ = c.Set("bbb", 101)
-		_ = c.Set("ccc", 102)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
 
 		val, ok := c.Get("aaa")
 		require.False(t, ok)
@@ -82,13 +88,19 @@ func TestCache(t *testing.T) {
 
 	t.Run("preemptive logic II", func(t *testing.T) {
 		c := NewCache(3)
-		_ = c.Set("aaa", 100)
-		_ = c.Set("bbb", 101)
-		_ = c.Set("ccc", 102)
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("bbb", 101)
+		require.False(t, wasInCache)
+		wasInCache = c.Set("ccc", 102)
+		require.False(t, wasInCache)
 
-		_, _ = c.Get("aaa")
-		_ = c.Set("ccc", 105)
-		_ = c.Set("ddd", 106)
+		_, ok := c.Get("aaa")
+		require.True(t, ok)
+		wasInCache = c.Set("ccc", 105)
+		require.True(t, wasInCache)
+		wasInCache = c.Set("ddd", 106)
+		require.False(t, wasInCache)
 
 		val, ok := c.Get("bbb")
 		require.False(t, ok)
