@@ -11,9 +11,9 @@ type List interface {
 }
 
 type listItem struct {
-	Value interface{}
-	Next  *listItem
-	Prev  *listItem
+	value interface{}
+	next  *listItem
+	prev  *listItem
 }
 
 type list struct {
@@ -39,7 +39,7 @@ func (l *list) Back() *listItem {
 
 // PushFront добавляет значение в начало списка.
 func (l *list) PushFront(v interface{}) *listItem {
-	newItem := &listItem{Value: v}
+	newItem := &listItem{value: v}
 
 	defer func() {
 		l.front = newItem
@@ -51,14 +51,14 @@ func (l *list) PushFront(v interface{}) *listItem {
 		return newItem
 	}
 
-	newItem.Next = l.front
-	l.front.Prev = newItem
+	newItem.next = l.front
+	l.front.prev = newItem
 	return newItem
 }
 
 // PushBack добавляет значение в конец списка.
 func (l *list) PushBack(v interface{}) *listItem {
-	newItem := &listItem{Value: v}
+	newItem := &listItem{value: v}
 
 	defer func() {
 		l.back = newItem
@@ -69,23 +69,23 @@ func (l *list) PushBack(v interface{}) *listItem {
 		l.front = newItem
 		return newItem
 	}
-	newItem.Prev = l.back
-	l.back.Next = newItem
+	newItem.prev = l.back
+	l.back.next = newItem
 	return newItem
 }
 
 // Remove удаляет элемент из списка.
 func (l *list) Remove(i *listItem) {
-	if i.Next == nil {
-		l.back = i.Prev
+	if i.next == nil {
+		l.back = i.prev
 	} else {
-		i.Next.Prev = i.Prev
+		i.next.prev = i.prev
 	}
 
-	if i.Prev == nil {
-		l.front = i.Next
+	if i.prev == nil {
+		l.front = i.next
 	} else {
-		i.Prev.Next = i.Next
+		i.prev.next = i.next
 	}
 
 	l.len--
@@ -93,12 +93,12 @@ func (l *list) Remove(i *listItem) {
 
 // MoveToFront перемещает элемент в начало списка.
 func (l *list) MoveToFront(i *listItem) {
-	if i.Prev == nil {
+	if i.prev == nil {
 		return
 	}
 
 	l.Remove(i)
-	_ = l.PushFront(i.Value)
+	_ = l.PushFront(i.value)
 }
 
 // NewList возвращает новый инстанс списка.

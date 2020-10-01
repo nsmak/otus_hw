@@ -32,16 +32,12 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 		if c.queue.Len() > c.capacity {
 			lastItem := c.queue.Back()
 			c.queue.Remove(lastItem)
-			cItem, ok := lastItem.Value.(cacheItem)
-			if !ok {
-				return false // может сбить с толку, думаю, что стоит возвращать при таком кейсе ошибку
-			}
-			delete(c.items, cItem.key)
+			delete(c.items, lastItem.value.(cacheItem).key)
 		}
 		return false
 	}
 
-	item.Value = cacheItem{
+	item.value = cacheItem{
 		key:   key,
 		value: value,
 	}
@@ -59,12 +55,7 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 		return nil, false
 	}
 	c.queue.MoveToFront(item)
-
-	cItem, ok := item.Value.(cacheItem)
-	if !ok {
-		return nil, false // здесь тоже можно возвращать ошибку
-	}
-	return cItem.value, true
+	return item.value.(cacheItem).value, true
 }
 
 // Clear очищает кэш.
