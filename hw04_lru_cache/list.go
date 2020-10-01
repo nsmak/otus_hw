@@ -40,7 +40,7 @@ func (l *list) Back() *listItem {
 
 // PushFront добавляет значение в начало списка.
 func (l *list) PushFront(v interface{}) *listItem {
-	newItem := &listItem{value: v}
+	newItem := &listItem{list: l, value: v}
 
 	defer func() {
 		l.front = newItem
@@ -59,7 +59,7 @@ func (l *list) PushFront(v interface{}) *listItem {
 
 // PushBack добавляет значение в конец списка.
 func (l *list) PushBack(v interface{}) *listItem {
-	newItem := &listItem{value: v}
+	newItem := &listItem{list: l, value: v}
 
 	defer func() {
 		l.back = newItem
