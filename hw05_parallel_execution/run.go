@@ -22,6 +22,7 @@ func Run(tasks []Task, n int, m int) error {
 	return err
 }
 
+// PoolOfWorkers - структура для работы с пул воркерами
 type PoolOfWorkers struct {
 	poolSize       int
 	maxErrCount    int
@@ -31,6 +32,7 @@ type PoolOfWorkers struct {
 	errCount       int
 }
 
+// RunTask запускает выполнение задач
 func (p *PoolOfWorkers) RunTask() error {
 	var wg sync.WaitGroup
 	taskChan := make(chan Task, len(p.tasks))
