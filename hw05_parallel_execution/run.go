@@ -18,7 +18,7 @@ func Run(tasks []Task, n int, m int) error {
 		tasks:       tasks,
 		mu:          &sync.Mutex{},
 	}
-	err := pool.RunTask()
+	err := pool.RunTasks()
 	return err
 }
 
@@ -32,8 +32,8 @@ type PoolOfWorkers struct {
 	errCount       int
 }
 
-// RunTask запускает выполнение задач.
-func (p *PoolOfWorkers) RunTask() error {
+// RunTasks запускает выполнение задач.
+func (p *PoolOfWorkers) RunTasks() error {
 	var wg sync.WaitGroup
 	taskChan := make(chan Task, len(p.tasks))
 	statusChan := make(chan bool)
