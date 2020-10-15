@@ -53,20 +53,14 @@ func (p *PoolOfWorkers) RunTasks() error {
 		taskChan <- task
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			close(taskChan)
-			wg.Wait()
-			close(statusChan)
-			if !p.errLimitCheck() {
-				return ErrErrorsLimitExceeded
-			}
-			return nil
-		default:
-			break
-		}
+	<-ctx.Done()
+	close(taskChan)
+	wg.Wait()
+	close(statusChan)
+	if !p.errLimitCheck() {
+		return ErrErrorsLimitExceeded
 	}
+	return nil
 }
 
 func (p *PoolOfWorkers) startWorker(in <-chan Task, status chan<- bool) {
