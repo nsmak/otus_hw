@@ -12,7 +12,7 @@ type Task func() error
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n int, m int) error {
-	pool := PoolOfWorkers{
+	pool := WorkersPool{
 		poolSize:    n,
 		maxErrCount: m,
 		tasks:       tasks,
@@ -22,8 +22,8 @@ func Run(tasks []Task, n int, m int) error {
 	return err
 }
 
-// PoolOfWorkers - структура для работы с пул воркерами.
-type PoolOfWorkers struct {
+// WorkersPool - структура для работы с пул воркерами.
+type WorkersPool struct {
 	poolSize       int
 	maxErrCount    int
 	tasks          []Task
@@ -33,23 +33,23 @@ type PoolOfWorkers struct {
 }
 
 // RunTasks запускает выполнение задач.
-func (p *PoolOfWorkers) RunTasks() error {
+func (w *WorkersPool) RunTasks() error {
 	var wg sync.WaitGroup
-	taskChan := make(chan Task, len(p.tasks))
+	taskChan := make(chan Task, len(w.tasks))
 	statusChan := make(chan bool)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go p.taskMonitor(cancel, statusChan)
+	go w.taskMonitor(cancel, statusChan)
 
-	for i := 0; i < p.poolSize; i++ {
-		wg.Add(1)
+	wg.Add(w.poolSize)
+	for i := 0; i < w.poolSize; i++ {
 		go func() {
-			p.startWorker(taskChan, statusChan)
-			wg.Done()
+			defer wg.Done()
+			w.startWorker(taskChan, statusChan)
 		}()
 	}
 
-	for _, task := range p.tasks {
+	for _, task := range w.tasks {
 		taskChan <- task
 	}
 
@@ -57,54 +57,50 @@ func (p *PoolOfWorkers) RunTasks() error {
 	close(taskChan)
 	wg.Wait()
 	close(statusChan)
-	if !p.errLimitCheck() {
+	if !w.errLimitCheck() {
 		return ErrErrorsLimitExceeded
 	}
 	return nil
 }
 
-func (p *PoolOfWorkers) startWorker(in <-chan Task, status chan<- bool) {
+func (w *WorkersPool) startWorker(in <-chan Task, status chan<- bool) {
 	for task := range in {
-		if p.errLimitCheck() {
+		if w.errLimitCheck() {
 			err := task()
 			status <- err == nil
 		}
 	}
 }
 
-func (p *PoolOfWorkers) taskMonitor(cancel context.CancelFunc, status <-chan bool) {
+func (w *WorkersPool) taskMonitor(cancel context.CancelFunc, status <-chan bool) {
 	for ok := range status {
-		p.mu.Lock()
-		p.completedTasks++
-		p.mu.Unlock()
+		w.completedTasks++
 		if !ok {
-			p.mu.Lock()
-			p.errCount++
-			p.mu.Unlock()
-			if !p.errLimitCheck() {
+			w.mu.Lock()
+			w.errCount++
+			w.mu.Unlock()
+			if !w.errLimitCheck() {
 				cancel()
 			}
 		}
-		if !p.taskDoneCheck() {
+		if !w.taskDoneCheck() {
 			cancel()
 		}
 	}
 }
 
-func (p *PoolOfWorkers) errLimitCheck() bool {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.maxErrCount <= 0 { // если лимит ошибок <= 0, то игнорируем ошибки в принципе
+func (w *WorkersPool) errLimitCheck() bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.maxErrCount <= 0 { // если лимит ошибок <= 0, то игнорируем ошибки в принципе
 		return true
 	}
-	if p.errCount >= p.maxErrCount {
+	if w.errCount >= w.maxErrCount {
 		return false
 	}
 	return true
 }
 
-func (p *PoolOfWorkers) taskDoneCheck() bool {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return p.completedTasks != len(p.tasks)
+func (w *WorkersPool) taskDoneCheck() bool {
+	return w.completedTasks != len(w.tasks)
 }
