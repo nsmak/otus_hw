@@ -52,9 +52,9 @@ func (w *WorkersPool) RunTasks() error {
 	for _, task := range w.tasks {
 		taskChan <- task
 	}
+	close(taskChan)
 
 	<-ctx.Done()
-	close(taskChan)
 	wg.Wait()
 	close(statusChan)
 	if !w.errLimitCheck() {
