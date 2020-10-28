@@ -9,8 +9,10 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	if in == nil || len(stages) == 0 {
-		return nil
+	if in == nil {
+		ch := make(chan interface{})
+		close(ch)
+		return ch
 	}
 
 	// Воспользовался паттерном, который проходили на лекции
@@ -22,11 +24,20 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 				select {
 				case <-done:
 					return
+				default:
+				}
+				select {
+				case <-done:
+					return
 				case val, ok := <-valueStream:
 					if !ok { // эта проверка для первого тест-кейса, когда нет done канала
 						return
 					}
-					takeStream <- val
+					select {
+					case <-done:
+						return
+					case takeStream <- val:
+					}
 				}
 			}
 		}()
