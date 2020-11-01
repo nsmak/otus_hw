@@ -19,13 +19,13 @@ var (
 func Copy(fromPath string, toPath string, offset, limit int64) error {
 	fileFrom, err := os.Open(fromPath)
 	if err != nil {
-		return fmt.Errorf("can't open file `%s`: %v", fromPath, err)
+		return fmt.Errorf("can't open file `%s`: %w", fromPath, err)
 	}
 	defer fileFrom.Close()
 
 	fileFromStat, err := fileFrom.Stat()
 	if err != nil {
-		return fmt.Errorf("can't get file stat `%s`: %v", fromPath, err)
+		return fmt.Errorf("can't get file stat `%s`: %w", fromPath, err)
 	}
 
 	if fileFromStat.Size() == 0 {
@@ -38,12 +38,12 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 
 	_, err = fileFrom.Seek(offset, io.SeekStart)
 	if err != nil {
-		return fmt.Errorf("can't seek: %v", err)
+		return fmt.Errorf("can't seek: %w", err)
 	}
 
 	fileTo, err := os.Create(toPath)
 	if err != nil {
-		return fmt.Errorf("can't create file `%s`: %v", toPath, err)
+		return fmt.Errorf("can't create file `%s`: %w", toPath, err)
 	}
 	defer fileTo.Close()
 
@@ -71,10 +71,10 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
 		progress.Add64(written)
 		remained -= written
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
-			return fmt.Errorf("can't copy file %v", err)
+			return fmt.Errorf("can't copy file %w", err)
 		}
 	}
 	progress.Finish()
