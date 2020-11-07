@@ -19,7 +19,7 @@ type Environment map[string]string
 func ReadDir(dir string) (Environment, error) {
 	infos, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't read directory: %v", err)
 	}
 
 	env := make(Environment)
@@ -36,7 +36,7 @@ func ReadDir(dir string) (Environment, error) {
 
 		file, err := os.Open(path.Join(dir, name))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't open file: %v", err)
 		}
 
 		r := bufio.NewReader(file)
@@ -46,7 +46,7 @@ func ReadDir(dir string) (Environment, error) {
 				env[name] = ""
 				continue
 			}
-			return nil, err
+			return nil, fmt.Errorf("can't read line from file %v: %v", name, err)
 		}
 
 		l = bytes.ReplaceAll(l, []byte("\x00"), []byte("\n"))
