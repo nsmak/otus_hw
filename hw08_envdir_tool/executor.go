@@ -48,13 +48,13 @@ func prepareOSEnv(env Environment) error {
 		if len(value) == 0 {
 			err := os.Unsetenv(key)
 			if err != nil {
-				return err
+				return fmt.Errorf("cat't unset env for key %v: %w", key, err)
 			}
 			continue
 		}
 		err := os.Setenv(key, value)
 		if err != nil {
-			return err
+			return fmt.Errorf("cat't set env %v for key %v: %w", value, key, err)
 		}
 	}
 	return nil
