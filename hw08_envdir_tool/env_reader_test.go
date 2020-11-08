@@ -38,8 +38,8 @@ func TestReadDir(t *testing.T) {
 
 		env, err := ReadDir(tmpDir)
 
-		require.Nil(t, env)
-		require.Error(t, err)
+		require.Len(t, env, 0)
+		require.NoError(t, err)
 	})
 
 	t.Run("directory instead file", func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestReadDir(t *testing.T) {
 
 		env, err := ReadDir(tmpDir)
 
-		require.Nil(t, env)
-		require.Error(t, err)
+		require.Len(t, env, 0)
+		require.NoError(t, err)
 	})
 }

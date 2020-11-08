@@ -22,14 +22,17 @@ func ReadDir(dir string) (Environment, error) {
 		return nil, fmt.Errorf("can't read directory: %w", err)
 	}
 
+	var builder strings.Builder
 	env := make(Environment)
 
 	for _, info := range infos {
 		if info.IsDir() {
-			return nil, fmt.Errorf("it's not a file: %v", info.Name())
+			fmt.Printf("[WARR]: it's not a file: %v\n", info.Name())
+			continue
 		}
 		if strings.Contains(info.Name(), "=") {
-			return nil, fmt.Errorf("invalid variable name: %v", info.Name())
+			fmt.Printf("[WARR]: invalid variable name: %v", info.Name())
+			continue
 		}
 
 		name := info.Name()
@@ -46,16 +49,17 @@ func ReadDir(dir string) (Environment, error) {
 				env[name] = ""
 				continue
 			}
+			file.Close()
 			return nil, fmt.Errorf("can't read line from file %v: %w", name, err)
 		}
 
 		l = bytes.ReplaceAll(l, []byte("\x00"), []byte("\n"))
 		l = bytes.TrimRight(l, "\t \n")
 
-		var builder strings.Builder
 		builder.Write(l)
-
 		env[name] = builder.String()
+		builder.Reset()
+		file.Close()
 	}
 
 	return env, nil
