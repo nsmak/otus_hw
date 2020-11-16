@@ -52,7 +52,7 @@ func Validate(v interface{}) error {
 			vErrors = append(vErrors, errs...)
 		}
 	}
-	log.Println(vErrors == nil)
+
 	if len(vErrors) > 0 {
 		return vErrors
 	}

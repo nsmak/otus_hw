@@ -145,6 +145,14 @@ func TestValidate(t *testing.T) {
 				},
 			},
 		},
+		{
+			in:          nil,
+			expectedErr: errors.New("input value is not a struct"),
+		},
+		{
+			in:          "1",
+			expectedErr: errors.New("input value is not a struct"),
+		},
 	}
 
 	for i, tt := range tests {
