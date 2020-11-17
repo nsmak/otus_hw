@@ -51,53 +51,61 @@ type (
 
 func TestValidate(t *testing.T) {
 	tests := []struct {
-		in          interface{}
-		expectedErr []error
+		in             interface{}
+		expectedFields []string
+		expectedErrs   []error
 	}{
 		{
 			in: App{
 				Version: "12345",
 			},
-			expectedErr: nil,
 		},
 		{
 			in: Slices{
 				Strings: []string{"12345", "first"},
 				Ints:    []int{25, 30, 50},
 			},
-			expectedErr: nil,
 		},
 		{
 			in: Response{
 				Code: 404,
 				Body: "Not found",
 			},
-			expectedErr: nil,
 		},
 		{
 			in: PrivateWithTags{
 				field1: "LoLKek",
 				field2: 100500,
 			},
-			expectedErr: nil,
 		},
 		{
-			in:          Token{},
-			expectedErr: nil,
+			in: Token{},
 		},
 
 		{
 			in: App{
 				Version: "3.3.5a",
 			},
-			expectedErr: []error{ErrInvalidLength},
+			expectedFields: []string{
+				"Version",
+			},
+			expectedErrs: []error{
+				ErrInvalidLength,
+			},
 		},
 		{
 			in: Slices{
 				Strings: []string{"1234567", "first"},
 				Ints:    []int{100, 40},
 			},
-			expectedErr: []error{
+			expectedFields: []string{
+				"Strings",
+				"Strings",
+				"Ints",
+				"Ints",
+				"Ints",
+			},
+			expectedErrs: []error{
 				ErrInvalidLength,
 				ErrNotIncludedInSet,
 				ErrMaxMoreMax,
@@ -110,7 +118,12 @@ func TestValidate(t *testing.T) {
 				Age:   14,
 				Email: "test@test.com",
 			},
-			expectedErr: []error{
+			expectedFields: []string{
+				"ID",
+				"Age",
+				"Role",
+			},
+			expectedErrs: []error{
 				ErrInvalidLength,
 				ErrLessThanMin,
 				ErrNotIncludedInSet,
@@ -118,13 +131,19 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			in: nil,
-			expectedErr: []error{
+			expectedFields: []string{
+				"-",
+			},
+			expectedErrs: []error{
 				ErrInputIsNotStruct,
 			},
 		},
 		{
 			in: "1",
-			expectedErr: []error{
+			expectedFields: []string{
+				"-",
+			},
+			expectedErrs: []error{
 				ErrInputIsNotStruct,
 			},
 		},
@@ -135,25 +154,21 @@ func TestValidate(t *testing.T) {
 			err := Validate(tt.in)
 			errs := unwrapErrors(err)
 
-			require.Len(t, errs, len(tt.expectedErr))
+			require.Len(t, errs, len(tt.expectedErrs))
 			if len(errs) > 0 {
 				for i, err := range errs {
-					require.True(t, errors.Is(err, tt.expectedErr[i]))
+					require.Equal(t, err.Field, tt.expectedFields[i])
+					require.True(t, errors.Is(err.Err, tt.expectedErrs[i]))
 				}
 			}
 		})
 	}
 }
 
-func unwrapErrors(err error) []error {
+func unwrapErrors(err error) ValidationErrors {
 	var vErrs ValidationErrors
 	if !errors.As(err, &vErrs) {
 		return nil
 	}
-
-	errs := make([]error, len(vErrs))
-	for i, err := range vErrs {
-		errs[i] = err.Err
-	}
-	return errs
+	return vErrs
 }

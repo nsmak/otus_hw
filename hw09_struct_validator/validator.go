@@ -45,7 +45,8 @@ func Validate(v interface{}) error {
 	if vv.Kind() != reflect.Struct {
 		return ValidationErrors{
 			ValidationError{
-				Err: ErrInputIsNotStruct,
+				Field: "-",
+				Err:   ErrInputIsNotStruct,
 			},
 		}
 	}
