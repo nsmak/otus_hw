@@ -52,7 +52,7 @@ type (
 func TestValidate(t *testing.T) {
 	tests := []struct {
 		in          interface{}
-		expectedErr error
+		expectedErr []error
 	}{
 		{
 			in: App{
@@ -90,39 +90,19 @@ func TestValidate(t *testing.T) {
 			in: App{
 				Version: "3.3.5a",
 			},
-			expectedErr: ValidationErrors{
-				ValidationError{
-					Field: "Version",
-					Err:   errors.New("length is invalid need: 5, now: 6"),
-				},
-			},
+			expectedErr: []error{ErrInvalidLength},
 		},
 		{
 			in: Slices{
 				Strings: []string{"1234567", "first"},
 				Ints:    []int{100, 40},
 			},
-			expectedErr: ValidationErrors{
-				ValidationError{
-					Field: "Strings",
-					Err:   errors.New("length is invalid need: 5, now: 7"),
-				},
-				ValidationError{
-					Field: "Strings",
-					Err:   errors.New("value (1234567) not included in validation set ([first 12345])"),
-				},
-				ValidationError{
-					Field: "Ints",
-					Err:   errors.New("value (100) is more thаn condition (50)"),
-				},
-				ValidationError{
-					Field: "Ints",
-					Err:   errors.New("value (100) not included in validation set ([25 30 50])"),
-				},
-				ValidationError{
-					Field: "Ints",
-					Err:   errors.New("value (40) not included in validation set ([25 30 50])"),
-				},
+			expectedErr: []error{
+				ErrInvalidLength,
+				ErrNotIncludedInSet,
+				ErrMaxMoreMax,
+				ErrNotIncludedInSet,
+				ErrNotIncludedInSet,
 			},
 		},
 		{
@@ -130,36 +110,50 @@ func TestValidate(t *testing.T) {
 				Age:   14,
 				Email: "test@test.com",
 			},
-			expectedErr: ValidationErrors{
-				ValidationError{
-					Field: "ID",
-					Err:   errors.New("length is invalid need: 36, now: 0"),
-				},
-				ValidationError{
-					Field: "Age",
-					Err:   errors.New("value (14) is less thаn condition (18)"),
-				},
-				ValidationError{
-					Field: "Role",
-					Err:   errors.New("value () not included in validation set ([admin stuff])"),
-				},
+			expectedErr: []error{
+				ErrInvalidLength,
+				ErrLessThanMin,
+				ErrNotIncludedInSet,
 			},
 		},
 		{
-			in:          nil,
-			expectedErr: errors.New("input value is not a struct"),
+			in: nil,
+			expectedErr: []error{
+				ErrInputIsNotStruct,
+			},
 		},
 		{
-			in:          "1",
-			expectedErr: errors.New("input value is not a struct"),
+			in: "1",
+			expectedErr: []error{
+				ErrInputIsNotStruct,
+			},
 		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
 			err := Validate(tt.in)
+			errs := unwrapErrors(err)
 
-			require.Equal(t, tt.expectedErr, err)
+			require.Len(t, errs, len(tt.expectedErr))
+			if len(errs) > 0 {
+				for i, err := range errs {
+					require.True(t, errors.Is(err, tt.expectedErr[i]))
+				}
+			}
 		})
 	}
+}
+
+func unwrapErrors(err error) []error {
+	var vErrs ValidationErrors
+	if !errors.As(err, &vErrs) {
+		return nil
+	}
+
+	errs := make([]error, len(vErrs))
+	for i, err := range vErrs {
+		errs[i] = err.Err
+	}
+	return errs
 }

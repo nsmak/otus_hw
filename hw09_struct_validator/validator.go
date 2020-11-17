@@ -9,6 +9,17 @@ import (
 	"strings"
 )
 
+const tagKey = "validate"
+
+var (
+	ErrInputIsNotStruct = errors.New("input value is not a struct")
+	ErrInvalidLength    = errors.New("length is invalid")
+	ErrNotMatchRegexp   = errors.New("string is not matched by regexp")
+	ErrNotIncludedInSet = errors.New("not included in validation set")
+	ErrLessThanMin      = errors.New("less than the minimum")
+	ErrMaxMoreMax       = errors.New("more than maximum")
+)
+
 type ValidationError struct {
 	Field string
 	Err   error
@@ -17,26 +28,32 @@ type ValidationError struct {
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
-	errStr := ""
+	var builder strings.Builder
 	for _, e := range v {
-		errStr += fmt.Sprintf("field: %s - %s", e.Field, e.Err.Error())
+		builder.WriteString("field: ")
+		builder.WriteString(e.Field)
+		builder.WriteString(" - ")
+		builder.WriteString(e.Err.Error())
 	}
-	return errStr
+	return builder.String()
 }
 
 func Validate(v interface{}) error {
 	var vErrors ValidationErrors
-
 	vv := reflect.ValueOf(v)
 
 	if vv.Kind() != reflect.Struct {
-		return errors.New("input value is not a struct")
+		return ValidationErrors{
+			ValidationError{
+				Err: ErrInputIsNotStruct,
+			},
+		}
 	}
 
 	t := vv.Type()
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		tag := field.Tag.Get("validate")
+		tag := field.Tag.Get(tagKey)
 		if tag == "" {
 			log.Println("no one tag for key 'validate'")
 			continue
@@ -94,14 +111,14 @@ func validateValue(tag, field string, v reflect.Value) ValidationErrors {
 
 	default:
 		log.Println("unsupported type")
-		return ValidationErrors{}
+		return nil
 	}
 }
 
 func stringValidators(tag, field, value string) []stringValidator {
-	validators := make([]stringValidator, 0)
-
 	validatorsRaw := strings.Split(tag, "|")
+	validators := make([]stringValidator, len(validatorsRaw))
+
 	for _, valRaw := range validatorsRaw {
 		val := strings.Split(valRaw, ":")
 		if len(val) != 2 {
@@ -138,7 +155,7 @@ func (sv stringValidator) validate() *ValidationError {
 		if l != cond {
 			return &ValidationError{
 				Field: sv.field,
-				Err:   fmt.Errorf("length is invalid need: %d, now: %d", cond, l),
+				Err:   fmt.Errorf("%w: need %d, now %d", ErrInvalidLength, cond, l),
 			}
 		}
 
@@ -150,7 +167,7 @@ func (sv stringValidator) validate() *ValidationError {
 		if !matched {
 			return &ValidationError{
 				Field: sv.field,
-				Err:   fmt.Errorf("string is not matched by regexp"),
+				Err:   fmt.Errorf("%w: %s", ErrNotMatchRegexp, sv.condition),
 			}
 		}
 
@@ -163,7 +180,7 @@ func (sv stringValidator) validate() *ValidationError {
 		}
 		return &ValidationError{
 			Field: sv.field,
-			Err:   fmt.Errorf("value (%s) not included in validation set (%v)", sv.value, set),
+			Err:   fmt.Errorf("%w: value %s, set %v", ErrNotIncludedInSet, sv.value, set),
 		}
 
 	default:
@@ -173,9 +190,9 @@ func (sv stringValidator) validate() *ValidationError {
 }
 
 func intValidators(tag, field string, value int) []intValidator {
-	validators := make([]intValidator, 0)
-
 	validatorsRaw := strings.Split(tag, "|")
+	validators := make([]intValidator, len(validatorsRaw))
+
 	for _, valRaw := range validatorsRaw {
 		val := strings.Split(valRaw, ":")
 		if len(val) != 2 {
@@ -211,7 +228,7 @@ func (iv intValidator) Validate() *ValidationError {
 		if iv.value < cond {
 			return &ValidationError{
 				Field: iv.field,
-				Err:   fmt.Errorf("value (%d) is less thаn condition (%d)", iv.value, cond),
+				Err:   fmt.Errorf("%w: value %d, condition %d", ErrLessThanMin, iv.value, cond),
 			}
 		}
 
@@ -224,7 +241,7 @@ func (iv intValidator) Validate() *ValidationError {
 		if iv.value > cond {
 			return &ValidationError{
 				Field: iv.field,
-				Err:   fmt.Errorf("value (%d) is more thаn condition (%d)", iv.value, cond),
+				Err:   fmt.Errorf("%w: value %d, condition %d", ErrMaxMoreMax, iv.value, cond),
 			}
 		}
 
@@ -242,7 +259,7 @@ func (iv intValidator) Validate() *ValidationError {
 		}
 		return &ValidationError{
 			Field: iv.field,
-			Err:   fmt.Errorf("value (%d) not included in validation set (%v)", iv.value, set),
+			Err:   fmt.Errorf("%w: value %d, set %v", ErrNotIncludedInSet, iv.value, set),
 		}
 	default:
 		log.Printf("unknown validator's name %s", iv.name)
