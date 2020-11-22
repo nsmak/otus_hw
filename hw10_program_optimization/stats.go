@@ -3,6 +3,8 @@ package hw10_program_optimization //nolint:golint,stylecheck
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"strings"
 )
@@ -39,10 +41,10 @@ func countDomains(r io.Reader, domain string) (DomainStat, error) {
 	for {
 		l, _, err := buf.ReadLine()
 		if err != nil {
-			if err != io.EOF {
-				return nil, err
+			if errors.Is(err, io.EOF) {
+				break
 			}
-			break
+			return nil, fmt.Errorf("can't read line: %w", err)
 		}
 
 		startIndex := bytes.Index(l, awaitingPrefix) + lenPrefix
