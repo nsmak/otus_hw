@@ -2,26 +2,13 @@ package hw10_program_optimization //nolint:golint,stylecheck
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
-
-var awaitingPrefix = []byte("\"Email\":\"")
-
-const lenPrefix = 9
-
-type User struct {
-	ID       int
-	Name     string
-	Username string
-	Email    string
-	Phone    string
-	Password string
-	Address  string
-}
 
 type DomainStat map[string]int
 
@@ -31,11 +18,9 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 
 func countDomains(r io.Reader, domain string) (DomainStat, error) {
 	result := make(DomainStat)
-
-	var builder strings.Builder
-	builder.WriteString(".")
-	builder.WriteString(domain)
-	domainValue := builder.String()
+	if domain == "" {
+		return result, nil
+	}
 
 	buf := bufio.NewReader(r)
 	for {
@@ -47,16 +32,10 @@ func countDomains(r io.Reader, domain string) (DomainStat, error) {
 			return nil, fmt.Errorf("can't read line: %w", err)
 		}
 
-		startIndex := bytes.Index(l, awaitingPrefix) + lenPrefix
-		for i, b := range l[startIndex:] {
-			if string(b) == "\"" {
-				email := string(l[startIndex:][:i])
-				if strings.HasSuffix(email, domainValue) {
-					emailDomain := strings.ToLower(strings.SplitN(email, "@", 2)[1])
-					result[emailDomain]++
-				}
-				break
-			}
+		email := jsoniter.Get(l, "Email").ToString()
+		if strings.HasSuffix(email, domain) {
+			emailDomain := strings.ToLower(strings.SplitN(email, "@", 2)[1])
+			result[emailDomain]++
 		}
 	}
 	return result, nil
