@@ -62,4 +62,35 @@ func TestTelnetClient(t *testing.T) {
 
 		wg.Wait()
 	})
+
+	t.Run("invalid address", func(t *testing.T) {
+		in := &bytes.Buffer{}
+		out := &bytes.Buffer{}
+
+		timeout, err := time.ParseDuration("10s")
+		require.NoError(t, err)
+
+		client := NewTelnetClient("invalid:host", timeout, ioutil.NopCloser(in), out)
+		require.Error(t, client.Connect())
+	})
+
+	t.Run("in is nil", func(t *testing.T) {
+		out := &bytes.Buffer{}
+
+		timeout, err := time.ParseDuration("10s")
+		require.NoError(t, err)
+
+		client := NewTelnetClient("127.0.0.1:8080", timeout, nil, out)
+		require.Equal(t, errInIsNil, client.Connect())
+	})
+
+	t.Run("out is nil", func(t *testing.T) {
+		in := &bytes.Buffer{}
+
+		timeout, err := time.ParseDuration("10s")
+		require.NoError(t, err)
+
+		client := NewTelnetClient("127.0.0.1:8080", timeout, ioutil.NopCloser(in), nil)
+		require.Equal(t, errOutIsNil, client.Connect())
+	})
 }
