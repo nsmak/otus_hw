@@ -23,13 +23,11 @@ func main() {
 		log.Fatalf("can't to parse flag: %v", err)
 	}
 
-	c := len(os.Args)
-	if c < 3 {
+	if flag.NArg() < 2 {
 		log.Fatalf("invalid input arguments")
 	}
 
-	args := os.Args[c-2 : c]
-	address := net.JoinHostPort(args[0], args[1])
+	address := net.JoinHostPort(flag.Arg(0), flag.Arg(1))
 
 	ctx, cancel := context.WithCancel(context.Background())
 
