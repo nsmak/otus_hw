@@ -2,31 +2,119 @@ package internalhttp
 
 import (
 	"context"
+	"errors"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/justinas/alice"
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 )
 
-type Server struct {
-	// TODO
+type serverError struct {
+	Message string `json:"message"`
+	Err     error  `json:"err,omitempty"`
+}
+
+func (e *serverError) Error() string {
+	if e.Err != nil {
+		e.Message = e.Message + " --> " + e.Err.Error()
+	}
+	return e.Message
+}
+func (e *serverError) Unwrap() error {
+	return e.Err
 }
 
 type Application interface {
 	// TODO
 }
 
-func NewServer(app Application) *Server {
-	return &Server{}
+type ServerAPI interface {
+	Routes() []Route
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	// TODO
-	select {
-	case <-ctx.Done():
-		return nil
+type Route struct {
+	Name   string
+	Method string
+	Path   string
+	Func   http.HandlerFunc
+}
+
+type Server struct {
+	Address string
+	public  ServerAPI
+	server  *http.Server
+	log     app.Logger
+}
+
+func NewServer(public ServerAPI, host, port string, logger app.Logger) *Server {
+	return &Server{
+		Address: net.JoinHostPort(host, port),
+		public:  public,
+		log:     logger,
 	}
 }
 
-func (s *Server) Stop(ctx context.Context) error {
-	// TODO
+func (s *Server) Start(ctx context.Context) error {
+	s.server = &http.Server{ // nolint: exhaustivestruct
+		Addr:         s.Address,
+		Handler:      s.router(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	err := s.server.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return &serverError{Message: "start server error", Err: err}
+	}
+
+	<-ctx.Done()
 	return nil
 }
 
-// TODO
+func (s *Server) Stop(ctx context.Context) error {
+	if s.server == nil {
+		return errors.New("server is nil")
+	}
+	if err := s.server.Shutdown(ctx); err != nil {
+		return &serverError{Message: "stop server error", Err: err}
+	}
+	return nil
+}
+
+func (s *Server) router() *mux.Router {
+	router := mux.NewRouter()
+	for _, route := range s.public.Routes() {
+		handler := alice.New(s.loggingMiddleware).ThenFunc(route.Func)
+		router.
+			Methods(route.Method).
+			Path(route.Path).
+			Name(route.Name).
+			Handler(handler)
+	}
+	return router
+}
+
+type TempPublic struct {
+	log app.Logger
+}
+
+func NewTempPublic(logger app.Logger) *TempPublic {
+	return &TempPublic{log: logger}
+}
+
+func (t *TempPublic) helloWorld(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("Hello World!"))
+}
+
+func (t *TempPublic) Routes() []Route {
+	return []Route{
+		{
+			Name:   "HelloWorld",
+			Method: http.MethodGet,
+			Path:   "/hello",
+			Func:   t.helloWorld,
+		},
+	}
+}

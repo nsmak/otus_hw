@@ -1,21 +1,38 @@
 package logger
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
 type Logger struct {
-	// TODO
+	logger *zap.Logger
 }
 
-func New(level string) *Logger {
-	return &Logger{}
+func New(level int8, logFilePath string) (*Logger, error) {
+	cfg := zap.NewDevelopmentConfig()
+	cfg.Level = zap.NewAtomicLevelAt(zapcore.Level(level))
+	cfg.DisableStacktrace = true
+	cfg.OutputPaths = []string{
+		logFilePath,
+	}
+	logger, err := cfg.Build()
+	if err != nil {
+		return nil, fmt.Errorf("can't build logger: %w", err)
+	}
+	return &Logger{logger: logger}, nil
 }
 
 func (l Logger) Info(msg string) {
-	fmt.Println(msg)
+	l.logger.Info(msg)
 }
 
 func (l Logger) Error(msg string) {
-	// TODO
+	l.logger.Error(msg)
 }
 
-// TODO
+func (l Logger) Warn(msg string) {
+	l.logger.Warn(msg)
+}

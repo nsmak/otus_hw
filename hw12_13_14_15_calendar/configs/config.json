@@ -1,0 +1,16 @@
+{
+  "logger": {
+    "level": -1,
+    "file_path": "./zap.log"
+  },
+  "server": {
+    "host": "localhost",
+    "port":"8080"
+  },
+  "database": {
+    "username": "test",
+    "password": "password",
+    "address": "localhost:5432",
+    "db_name": "cal"
+  }
+}

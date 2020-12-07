@@ -9,7 +9,9 @@ type App struct {
 }
 
 type Logger interface {
-	// TODO
+	Info(msg string)
+	Warn(msg string)
+	Error(msg string)
 }
 
 type Storage interface {
