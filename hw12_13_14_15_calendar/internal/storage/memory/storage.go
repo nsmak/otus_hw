@@ -1,29 +1,30 @@
 package memorystorage
 
 import (
+	"context"
 	"sync"
 
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage"
 )
 
 var (
-	ErrEventAlreadyExist = &memDBError{Message: "event with this id already exist", Err: nil}
-	ErrEventDoesNotExist = &memDBError{Message: "event does not exist", Err: nil}
-	ErrNoEvents          = &memDBError{Message: "no one event", Err: nil}
+	ErrEventAlreadyExist = &MemDBError{Message: "event with this id already exist", Err: nil}
+	ErrEventDoesNotExist = &MemDBError{Message: "event does not exist", Err: nil}
+	ErrNoEvents          = &MemDBError{Message: "no one event", Err: nil}
 )
 
-type memDBError struct {
+type MemDBError struct {
 	Message string `json:"message"`
 	Err     error  `json:"err,omitempty"`
 }
 
-func (e *memDBError) Error() string {
+func (e *MemDBError) Error() string {
 	if e.Err != nil {
 		e.Message = e.Message + " --> " + e.Err.Error()
 	}
 	return e.Message
 }
-func (e *memDBError) Unwrap() error {
+func (e *MemDBError) Unwrap() error {
 	return e.Err
 }
 
@@ -36,7 +37,7 @@ func New() *Storage {
 	return &Storage{}
 }
 
-func (s *Storage) NewEvent(e storage.Event) error {
+func (s *Storage) NewEvent(ctx context.Context, e storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -48,7 +49,7 @@ func (s *Storage) NewEvent(e storage.Event) error {
 	return nil
 }
 
-func (s *Storage) UpdateEvent(e storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -60,7 +61,7 @@ func (s *Storage) UpdateEvent(e storage.Event) error {
 	return nil
 }
 
-func (s *Storage) RemoveEvent(id string) error {
+func (s *Storage) RemoveEvent(ctx context.Context, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -72,7 +73,7 @@ func (s *Storage) RemoveEvent(id string) error {
 	return nil
 }
 
-func (s *Storage) EventList(from int64, to int64) ([]storage.Event, error) {
+func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storage.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var events []storage.Event

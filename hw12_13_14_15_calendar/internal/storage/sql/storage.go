@@ -9,48 +9,47 @@ import (
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage"
 )
 
-type sqlError struct {
+type SQLError struct {
 	Message string `json:"message"`
 	Err     error  `json:"err,omitempty"`
 }
 
-func (e *sqlError) Error() string {
+func (e *SQLError) Error() string {
 	if e.Err != nil {
 		e.Message = e.Message + " --> " + e.Err.Error()
 	}
 	return e.Message
 }
-func (e *sqlError) Unwrap() error {
+func (e *SQLError) Unwrap() error {
 	return e.Err
 }
 
 type Storage struct {
-	ctx context.Context
-	db  *sqlx.DB
+	db *sqlx.DB
 }
 
 func New(ctx context.Context, user, pass, addr, dbName string) (*Storage, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?ssmode=disable", user, pass, addr, dbName)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, addr, dbName)
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
-		return nil, &sqlError{Message: "can't create db store", Err: err}
+		return nil, &SQLError{Message: "can't create db store", Err: err}
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		return nil, &sqlError{Message: "ping error", Err: err}
+		return nil, &SQLError{Message: "ping error", Err: err}
 	}
 
-	return &Storage{ctx: ctx, db: db}, nil
+	return &Storage{db: db}, nil
 }
 
 func (s *Storage) Close() error {
 	return s.db.Close()
 }
 
-func (s *Storage) NewEvent(e storage.Event) error {
+func (s *Storage) NewEvent(ctx context.Context, e storage.Event) error {
 	_, err := s.db.ExecContext(
-		s.ctx,
+		ctx,
 		`INSERT event 
     		SET id=?, 
     		    title=?,
@@ -68,14 +67,14 @@ func (s *Storage) NewEvent(e storage.Event) error {
 		e.RemindIn,
 	)
 	if err != nil {
-		return &sqlError{Message: "can't add event to db", Err: err}
+		return &SQLError{Message: "can't add event to db", Err: err}
 	}
 	return nil
 }
 
-func (s *Storage) UpdateEvent(e storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
 	_, err := s.db.ExecContext(
-		s.ctx,
+		ctx,
 		`UPDATE event
 			SET title=?,
     		    start_date=FROM_UNIXTIME(?), 
@@ -94,23 +93,23 @@ func (s *Storage) UpdateEvent(e storage.Event) error {
 	)
 
 	if err != nil {
-		return &sqlError{Message: "can't update event", Err: err}
+		return &SQLError{Message: "can't update event", Err: err}
 	}
 	return nil
 }
 
-func (s *Storage) RemoveEvent(id string) error {
-	_, err := s.db.ExecContext(s.ctx, "DELETE FROM event WHERE id=$1", id)
+func (s *Storage) RemoveEvent(ctx context.Context, id string) error {
+	_, err := s.db.ExecContext(ctx, "DELETE FROM event WHERE id=$1", id)
 	if err != nil {
-		return &sqlError{Message: "can't delete event from db", Err: err}
+		return &SQLError{Message: "can't delete event from db", Err: err}
 	}
 	return nil
 }
 
-func (s *Storage) EventList(from int64, to int64) ([]storage.Event, error) {
+func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storage.Event, error) {
 	var events []storage.Event
 	err := s.db.SelectContext(
-		s.ctx,
+		ctx,
 		&events,
 		`SELECT id, 
        			title, 
@@ -124,7 +123,7 @@ func (s *Storage) EventList(from int64, to int64) ([]storage.Event, error) {
 		from, to,
 	)
 	if err != nil {
-		return nil, &sqlError{Message: "can't select events from db", Err: err}
+		return nil, &SQLError{Message: "can't select events from db", Err: err}
 	}
 	return events, nil
 }

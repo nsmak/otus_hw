@@ -1,6 +1,7 @@
 package memorystorage
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -77,7 +78,7 @@ func (m *MemStoreSuite) TestInsertNewEventSuccess() {
 		RemindIn:    150,
 	}
 
-	err := m.store.NewEvent(newEvent)
+	err := m.store.NewEvent(context.Background(), newEvent)
 
 	m.Require().NoError(err)
 
@@ -98,7 +99,7 @@ func (m *MemStoreSuite) TestInsertNewEventWithFail() {
 		RemindIn:    150,
 	}
 
-	err := m.store.NewEvent(newEvent)
+	err := m.store.NewEvent(context.Background(), newEvent)
 
 	m.Require().Error(err)
 	m.Require().EqualError(ErrEventAlreadyExist, err.Error())
@@ -114,7 +115,7 @@ func (m *MemStoreSuite) TestUpdateEventSuccess() {
 		OwnerID:     "",
 		RemindIn:    5,
 	}
-	err := m.store.UpdateEvent(toUpdate)
+	err := m.store.UpdateEvent(context.Background(), toUpdate)
 
 	m.Require().NoError(err)
 
@@ -136,14 +137,14 @@ func (m *MemStoreSuite) TestUpdateEventWithError() {
 		RemindIn:    150,
 	}
 
-	err := m.store.UpdateEvent(toUpdate)
+	err := m.store.UpdateEvent(context.Background(), toUpdate)
 
 	m.Require().Error(err)
 	m.Require().EqualError(ErrEventDoesNotExist, err.Error())
 }
 
 func (m *MemStoreSuite) TestRemoveEventSuccess() {
-	err := m.store.RemoveEvent("1")
+	err := m.store.RemoveEvent(context.Background(), "1")
 
 	m.Require().NoError(err)
 
@@ -153,14 +154,14 @@ func (m *MemStoreSuite) TestRemoveEventSuccess() {
 }
 
 func (m *MemStoreSuite) TestRemoveEventWithError() {
-	err := m.store.RemoveEvent("NaN")
+	err := m.store.RemoveEvent(context.Background(), "NaN")
 
 	m.Require().Error(err)
 	m.Require().EqualError(ErrEventDoesNotExist, err.Error())
 }
 
 func (m *MemStoreSuite) TestEventListSuccess() {
-	list, err := m.store.EventList(3, 10)
+	list, err := m.store.EventList(context.Background(), 3, 10)
 
 	m.Require().NoError(err)
 	m.Require().Len(list, 3)
@@ -170,7 +171,7 @@ func (m *MemStoreSuite) TestEventListSuccess() {
 }
 
 func (m *MemStoreSuite) TestEventListWithError() {
-	list, err := m.store.EventList(500, 700)
+	list, err := m.store.EventList(context.Background(), 500, 700)
 
 	m.Require().Error(err)
 	m.Require().EqualError(ErrNoEvents, err.Error())
@@ -189,7 +190,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 				Title: fmt.Sprintf("Title%d", i),
 			}
 
-			err := m.store.NewEvent(newEvent)
+			err := m.store.NewEvent(context.Background(), newEvent)
 
 			m.Require().NoError(err)
 
@@ -210,7 +211,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 			RemindIn:    5,
 		}
 
-		err := m.store.UpdateEvent(toUpdate)
+		err := m.store.UpdateEvent(context.Background(), toUpdate)
 
 		m.Require().NoError(err)
 	}()
@@ -218,7 +219,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 	go func() {
 		defer wg.Done()
 		time.Sleep(150 * time.Millisecond)
-		list, err := m.store.EventList(6, 10)
+		list, err := m.store.EventList(context.Background(), 6, 10)
 
 		m.Require().NoError(err)
 		m.Require().Len(list, 2)
@@ -226,7 +227,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 
 	go func() {
 		defer wg.Done()
-		err := m.store.RemoveEvent("5")
+		err := m.store.RemoveEvent(context.Background(), "5")
 		m.Require().NoError(err)
 	}()
 

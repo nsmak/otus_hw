@@ -12,18 +12,18 @@ import (
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 )
 
-type serverError struct {
+type ServerError struct {
 	Message string `json:"message"`
 	Err     error  `json:"err,omitempty"`
 }
 
-func (e *serverError) Error() string {
+func (e *ServerError) Error() string {
 	if e.Err != nil {
 		e.Message = e.Message + " --> " + e.Err.Error()
 	}
 	return e.Message
 }
-func (e *serverError) Unwrap() error {
+func (e *ServerError) Unwrap() error {
 	return e.Err
 }
 
@@ -66,7 +66,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 	err := s.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return &serverError{Message: "start server error", Err: err}
+		return &ServerError{Message: "start server error", Err: err}
 	}
 
 	<-ctx.Done()
@@ -78,7 +78,7 @@ func (s *Server) Stop(ctx context.Context) error {
 		return errors.New("server is nil")
 	}
 	if err := s.server.Shutdown(ctx); err != nil {
-		return &serverError{Message: "stop server error", Err: err}
+		return &ServerError{Message: "stop server error", Err: err}
 	}
 	return nil
 }
