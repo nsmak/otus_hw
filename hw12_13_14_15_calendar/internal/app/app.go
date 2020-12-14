@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage"
 )
 
 type App struct {
@@ -11,7 +9,9 @@ type App struct {
 }
 
 type Logger interface {
-	// TODO
+	Info(msg string)
+	Warn(msg string)
+	Error(msg string)
 }
 
 type Storage interface {
@@ -23,7 +23,9 @@ func New(logger Logger, storage Storage) *App {
 }
 
 func (a *App) CreateEvent(ctx context.Context, id string, title string) error {
-	return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+	// TODO
+	return nil
+	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
 }
 
 // TODO

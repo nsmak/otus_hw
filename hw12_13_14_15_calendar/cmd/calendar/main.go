@@ -1,30 +1,48 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
+	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/server/http"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/config.json", "Path to configuration file")
 }
 
 func main() {
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	flag.Parse()
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	if flag.Arg(0) == "version" {
+		printVersion()
+		return
+	}
 
-	server := internalhttp.NewServer(calendar)
+	config, err := NewConfig(configFile)
+	if err != nil {
+		log.Fatalf("can't get config: %v", err)
+	}
+
+	logg, err := logger.New(config.Logger.Level, config.Logger.FilePath)
+	if err != nil {
+		log.Fatalf("can't start logger %v\n", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// storage := memorystorage.New() // TEMP: - пока не используется
+	// calendar := app.New(logg, storage)  // TEMP: - пока не используется
+
+	server := internalhttp.NewServer(internalhttp.NewTempPublic(logg), config.HTTPServer.Host, config.HTTPServer.Port, logg)
 
 	go func() {
 		signals := make(chan os.Signal, 1)
@@ -32,14 +50,22 @@ func main() {
 
 		<-signals
 		signal.Stop(signals)
+		cancel()
 
-		if err := server.Stop(); err != nil {
-			logger.Error("failed to stop http server: " + err.String())
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
+		logg.Info("stopping server...")
+		if err := server.Stop(ctx); err != nil {
+			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	if err := server.Start(); err != nil {
-		logger.Error("failed to start http server: " + err.String())
-		os.Exit(1)
+	logg.Info("calendar is running...")
+
+	logg.Info("starting server at " + server.Address)
+	if err := server.Start(ctx); err != nil {
+		logg.Error("failed to start http server: " + err.Error())
+		os.Exit(1) // nolint: gocritic
 	}
 }
