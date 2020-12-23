@@ -1,4 +1,4 @@
-package internalhttp
+package rest
 
 import (
 	"context"
@@ -75,7 +75,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 func (s *Server) Stop(ctx context.Context) error {
 	if s.server == nil {
-		return errors.New("server is nil")
+		return errors.New("rest server is nil")
 	}
 	if err := s.server.Shutdown(ctx); err != nil {
 		return &ServerError{Message: "stop server error", Err: err}
@@ -94,27 +94,4 @@ func (s *Server) router() *mux.Router {
 			Handler(handler)
 	}
 	return router
-}
-
-type TempPublic struct {
-	log app.Logger
-}
-
-func NewTempPublic(logger app.Logger) *TempPublic {
-	return &TempPublic{log: logger}
-}
-
-func (t *TempPublic) helloWorld(w http.ResponseWriter, r *http.Request) {
-	_, _ = w.Write([]byte("Hello World!"))
-}
-
-func (t *TempPublic) Routes() []Route {
-	return []Route{
-		{
-			Name:   "HelloWorld",
-			Method: http.MethodGet,
-			Path:   "/hello",
-			Func:   t.helloWorld,
-		},
-	}
 }

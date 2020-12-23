@@ -1,10 +1,22 @@
 package storage
 
-import "context"
+var (
+	ErrEventAlreadyExist = &Error{Message: "event with this id already exist", Err: nil}
+	ErrEventDoesNotExist = &Error{Message: "event does not exist", Err: nil}
+	ErrNoEvents          = &Error{Message: "no one event", Err: nil}
+)
 
-type EventDataStore interface {
-	NewEvent(ctx context.Context, e Event) error
-	UpdateEvent(ctx context.Context, e Event) error
-	RemoveEvent(ctx context.Context, id string) error
-	EventList(ctx context.Context, from int64, to int64) ([]Event, error)
+type Error struct {
+	Message string `json:"message"`
+	Err     error  `json:"err,omitempty"`
+}
+
+func (e *Error) Error() string {
+	if e.Err != nil {
+		e.Message = e.Message + " --> " + e.Err.Error()
+	}
+	return e.Message
+}
+func (e *Error) Unwrap() error {
+	return e.Err
 }

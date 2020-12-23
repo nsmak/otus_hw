@@ -3,11 +3,16 @@
     "level": -1,
     "file_path": "./zap.log"
   },
-  "server": {
+  "rest_server": {
     "host": "localhost",
     "port":"8080"
   },
+  "grpc_server": {
+    "host": "localhost",
+    "port":"15443"
+  },
   "database": {
+    "in_mem": true,
     "username": "test",
     "password": "password",
     "address": "localhost:5432",

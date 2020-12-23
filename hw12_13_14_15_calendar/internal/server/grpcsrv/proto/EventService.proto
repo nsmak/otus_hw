@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "../grpcsrv";
+
+message Event {
+    string id = 1;
+    string title = 2;
+    int64 startDate = 3;
+    int64 endDate = 4;
+    string description = 5;
+    string owner_id = 6;
+    int64 remind_in = 7;
+
+}
+
+message EventID {
+    string id = 1;
+}
+
+message EventsQuery {
+    int64 from = 1;
+    int64 to = 2;
+}
+
+message EventsValues {
+    repeated Event events = 1;
+}
+
+message Nothing {
+}
+
+service EventService {
+    rpc CreateEvent(Event) returns (Nothing) {}
+    rpc UpdateEvent(Event) returns (Nothing) {}
+    rpc RemoveEvent(EventID) returns (Nothing) {}
+    rpc Events(EventsQuery) returns (EventsValues) {}
+}
