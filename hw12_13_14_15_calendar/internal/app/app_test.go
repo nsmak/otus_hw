@@ -4,22 +4,36 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 )
 
 type mockLogger struct {
 }
 
-func (m *mockLogger) Info(msg string) {
+func (m *mockLogger) Info(msg string, fields ...zap.Field) {
 }
 
-func (m *mockLogger) Warn(msg string) {
+func (m *mockLogger) Warn(msg string, fields ...zap.Field) {
 }
 
-func (m *mockLogger) Error(msg string) {
+func (m *mockLogger) Error(msg string, fields ...zap.Field) {
+}
+
+func (m *mockLogger) String(key string, val string) zap.Field {
+	return zap.Field{}
+}
+
+func (m *mockLogger) Int64(key string, val int64) zap.Field {
+	return zap.Field{}
+}
+
+func (m *mockLogger) Duration(key string, val time.Duration) zap.Field {
+	return zap.Field{}
 }
 
 type AppSuite struct {

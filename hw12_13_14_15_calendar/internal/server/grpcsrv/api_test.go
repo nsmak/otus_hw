@@ -5,10 +5,12 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	memorystorage "github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/runtime/protoimpl"
@@ -21,13 +23,25 @@ var lis *bufconn.Listener
 type mockLogger struct {
 }
 
-func (m *mockLogger) Info(msg string) {
+func (m *mockLogger) Info(msg string, fields ...zap.Field) {
 }
 
-func (m *mockLogger) Warn(msg string) {
+func (m *mockLogger) Warn(msg string, fields ...zap.Field) {
 }
 
-func (m *mockLogger) Error(msg string) {
+func (m *mockLogger) Error(msg string, fields ...zap.Field) {
+}
+
+func (m *mockLogger) String(key string, val string) zap.Field {
+	return zap.Field{}
+}
+
+func (m *mockLogger) Int64(key string, val int64) zap.Field {
+	return zap.Field{}
+}
+
+func (m *mockLogger) Duration(key string, val time.Duration) zap.Field {
+	return zap.Field{}
 }
 
 func TestCreateEventSuccess(t *testing.T) {
