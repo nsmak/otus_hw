@@ -44,7 +44,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	calendar := app.New(logg, startStorageService(ctx, config))
+	calendar := app.New(logg, startStorageService(ctx, config.Database))
 	restServer := rest.NewServer(rest.NewAPI(calendar), config.RestServer.Host, config.RestServer.Port, logg)
 	grpcServer := grpcsrv.NewServer(grpcsrv.NewAPI(calendar), config.GrpcServer.Host, config.GrpcServer.Port, logg)
 
@@ -100,12 +100,12 @@ func startGRPCServer(ctx context.Context, s *grpcsrv.Server, logg app.Logger) {
 	}
 }
 
-func startStorageService(ctx context.Context, config Config) app.Storage {
+func startStorageService(ctx context.Context, config DBConf) app.Storage {
 	var s app.Storage
-	if config.Database.InMem {
+	if config.InMem {
 		s = memorystorage.New()
 	} else {
-		sqlStore, err := sqlstorage.New(ctx, config.Database.Username, config.Database.Password, config.Database.Address, config.Database.DBName)
+		sqlStore, err := sqlstorage.New(ctx, config.Username, config.Password, config.Address, config.DBName)
 		if err != nil {
 			log.Fatalf("failed to start storage connection: " + err.Error())
 		}

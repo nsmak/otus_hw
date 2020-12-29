@@ -17,9 +17,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventServiceClient interface {
-	CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Nothing, error)
-	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Nothing, error)
-	RemoveEvent(ctx context.Context, in *EventID, opts ...grpc.CallOption) (*Nothing, error)
+	CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*CreateEventResponse, error)
+	UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*UpdateEventResponse, error)
+	RemoveEvent(ctx context.Context, in *EventID, opts ...grpc.CallOption) (*RemoveEventResponse, error)
 	Events(ctx context.Context, in *EventsQuery, opts ...grpc.CallOption) (*EventsValues, error)
 }
 
@@ -31,8 +31,8 @@ func NewEventServiceClient(cc grpc.ClientConnInterface) EventServiceClient {
 	return &eventServiceClient{cc}
 }
 
-func (c *eventServiceClient) CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Nothing, error) {
-	out := new(Nothing)
+func (c *eventServiceClient) CreateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*CreateEventResponse, error) {
+	out := new(CreateEventResponse)
 	err := c.cc.Invoke(ctx, "/pb.EventService/CreateEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -40,8 +40,8 @@ func (c *eventServiceClient) CreateEvent(ctx context.Context, in *Event, opts ..
 	return out, nil
 }
 
-func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*Nothing, error) {
-	out := new(Nothing)
+func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *Event, opts ...grpc.CallOption) (*UpdateEventResponse, error) {
+	out := new(UpdateEventResponse)
 	err := c.cc.Invoke(ctx, "/pb.EventService/UpdateEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -49,8 +49,8 @@ func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *Event, opts ..
 	return out, nil
 }
 
-func (c *eventServiceClient) RemoveEvent(ctx context.Context, in *EventID, opts ...grpc.CallOption) (*Nothing, error) {
-	out := new(Nothing)
+func (c *eventServiceClient) RemoveEvent(ctx context.Context, in *EventID, opts ...grpc.CallOption) (*RemoveEventResponse, error) {
+	out := new(RemoveEventResponse)
 	err := c.cc.Invoke(ctx, "/pb.EventService/RemoveEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -71,9 +71,9 @@ func (c *eventServiceClient) Events(ctx context.Context, in *EventsQuery, opts .
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility
 type EventServiceServer interface {
-	CreateEvent(context.Context, *Event) (*Nothing, error)
-	UpdateEvent(context.Context, *Event) (*Nothing, error)
-	RemoveEvent(context.Context, *EventID) (*Nothing, error)
+	CreateEvent(context.Context, *Event) (*CreateEventResponse, error)
+	UpdateEvent(context.Context, *Event) (*UpdateEventResponse, error)
+	RemoveEvent(context.Context, *EventID) (*RemoveEventResponse, error)
 	Events(context.Context, *EventsQuery) (*EventsValues, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
@@ -82,13 +82,13 @@ type EventServiceServer interface {
 type UnimplementedEventServiceServer struct {
 }
 
-func (UnimplementedEventServiceServer) CreateEvent(context.Context, *Event) (*Nothing, error) {
+func (UnimplementedEventServiceServer) CreateEvent(context.Context, *Event) (*CreateEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
 }
-func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *Event) (*Nothing, error) {
+func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *Event) (*UpdateEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
 }
-func (UnimplementedEventServiceServer) RemoveEvent(context.Context, *EventID) (*Nothing, error) {
+func (UnimplementedEventServiceServer) RemoveEvent(context.Context, *EventID) (*RemoveEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveEvent not implemented")
 }
 func (UnimplementedEventServiceServer) Events(context.Context, *EventsQuery) (*EventsValues, error) {

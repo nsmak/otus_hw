@@ -34,15 +34,15 @@ func NewAPI(application *app.App) *API {
 	return &API{application: application, UnimplementedEventServiceServer: UnimplementedEventServiceServer{}}
 }
 
-func (a *API) CreateEvent(ctx context.Context, event *Event) (*Nothing, error) {
+func (a *API) CreateEvent(ctx context.Context, event *Event) (*CreateEventResponse, error) {
 	err := a.application.CreateEvent(ctx, toAppEvent(event))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &Nothing{}, nil
+	return &CreateEventResponse{}, nil
 }
 
-func (a *API) UpdateEvent(ctx context.Context, event *Event) (*Nothing, error) {
+func (a *API) UpdateEvent(ctx context.Context, event *Event) (*UpdateEventResponse, error) {
 	err := a.application.UpdateEvent(ctx, toAppEvent(event))
 	if err != nil {
 		if errors.Is(err, storage.ErrEventDoesNotExist) {
@@ -50,10 +50,10 @@ func (a *API) UpdateEvent(ctx context.Context, event *Event) (*Nothing, error) {
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &Nothing{}, nil
+	return &UpdateEventResponse{}, nil
 }
 
-func (a *API) RemoveEvent(ctx context.Context, eventID *EventID) (*Nothing, error) {
+func (a *API) RemoveEvent(ctx context.Context, eventID *EventID) (*RemoveEventResponse, error) {
 	err := a.application.RemoveEvent(ctx, eventID.Id)
 	if err != nil {
 		if errors.Is(err, storage.ErrEventDoesNotExist) {
@@ -61,7 +61,7 @@ func (a *API) RemoveEvent(ctx context.Context, eventID *EventID) (*Nothing, erro
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &Nothing{}, nil
+	return &RemoveEventResponse{}, nil
 }
 
 func (a *API) Events(ctx context.Context, query *EventsQuery) (*EventsValues, error) {

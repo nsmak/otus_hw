@@ -27,12 +27,18 @@ message EventsValues {
     repeated Event events = 1;
 }
 
-message Nothing {
+message CreateEventResponse {
+}
+
+message UpdateEventResponse {
+}
+
+message RemoveEventResponse {
 }
 
 service EventService {
-    rpc CreateEvent(Event) returns (Nothing) {}
-    rpc UpdateEvent(Event) returns (Nothing) {}
-    rpc RemoveEvent(EventID) returns (Nothing) {}
+    rpc CreateEvent(Event) returns (CreateEventResponse) {}
+    rpc UpdateEvent(Event) returns (UpdateEventResponse) {}
+    rpc RemoveEvent(EventID) returns (RemoveEventResponse) {}
     rpc Events(EventsQuery) returns (EventsValues) {}
 }
