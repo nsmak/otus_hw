@@ -32,7 +32,7 @@ func status(r *http.Request, status int) {
 }
 
 func sendErrorJSON(w http.ResponseWriter, r *http.Request, httpStatusCode int, err error, details string) {
-	e := &APIError{Message: details, Err: err}
+	e := NewError(details, err)
 	resp := response{
 		Data:  nil,
 		Error: JSON{"message": e.Error()},

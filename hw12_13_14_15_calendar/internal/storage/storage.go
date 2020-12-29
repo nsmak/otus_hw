@@ -1,22 +1,17 @@
 package storage
 
+import "github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
+
 var (
-	ErrEventAlreadyExist = &Error{Message: "event with this id already exist", Err: nil}
-	ErrEventDoesNotExist = &Error{Message: "event does not exist", Err: nil}
-	ErrNoEvents          = &Error{Message: "no one event", Err: nil}
+	ErrEventAlreadyExist = NewError("event with this id already exist", nil)
+	ErrEventDoesNotExist = NewError("event does not exist", nil)
+	ErrNoEvents          = NewError("no one event", nil)
 )
 
 type Error struct {
-	Message string `json:"message"`
-	Err     error  `json:"err,omitempty"`
+	app.BaseError
 }
 
-func (e *Error) Error() string {
-	if e.Err != nil {
-		e.Message = e.Message + " --> " + e.Err.Error()
-	}
-	return e.Message
-}
-func (e *Error) Unwrap() error {
-	return e.Err
+func NewError(msg string, err error) *Error {
+	return &Error{BaseError: app.BaseError{Message: msg, Err: err}}
 }

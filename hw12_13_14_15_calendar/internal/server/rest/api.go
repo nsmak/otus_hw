@@ -11,18 +11,11 @@ import (
 )
 
 type APIError struct {
-	Message string `json:"message"`
-	Err     error  `json:"err,omitempty"`
+	app.BaseError
 }
 
-func (e *APIError) Error() string {
-	if e.Err != nil {
-		e.Message = e.Message + " --> " + e.Err.Error()
-	}
-	return e.Message
-}
-func (e *APIError) Unwrap() error {
-	return e.Err
+func NewError(msg string, err error) *APIError {
+	return &APIError{BaseError: app.BaseError{Message: msg, Err: err}}
 }
 
 type eventRemoveForm struct {

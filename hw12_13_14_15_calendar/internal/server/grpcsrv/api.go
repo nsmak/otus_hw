@@ -10,21 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type APIError struct {
-	Message string `json:"message"`
-	Err     error  `json:"err,omitempty"`
-}
-
-func (e *APIError) Error() string {
-	if e.Err != nil {
-		e.Message = e.Message + " --> " + e.Err.Error()
-	}
-	return "[grpc api] " + e.Message
-}
-func (e *APIError) Unwrap() error {
-	return e.Err
-}
-
 type API struct { // nolint: maligned
 	application *app.App
 	UnimplementedEventServiceServer
