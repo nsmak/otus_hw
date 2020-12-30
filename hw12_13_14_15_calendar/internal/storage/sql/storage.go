@@ -2,53 +2,58 @@ package sqlstorage
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/jackc/pgx/v4/stdlib" // nolint: gci
 	"github.com/jmoiron/sqlx"
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage"
 )
 
 type SQLError struct {
-	Message string `json:"message"`
-	Err     error  `json:"err,omitempty"`
+	app.BaseError
 }
 
-func (e *SQLError) Error() string {
-	if e.Err != nil {
-		e.Message = e.Message + " --> " + e.Err.Error()
-	}
-	return e.Message
-}
-func (e *SQLError) Unwrap() error {
-	return e.Err
+func NewError(msg string, err error) *SQLError {
+	return &SQLError{BaseError: app.BaseError{Message: msg, Err: err}}
 }
 
-type Storage struct {
+type EventDataStore struct {
 	db *sqlx.DB
 }
 
-func New(ctx context.Context, user, pass, addr, dbName string) (*Storage, error) {
+func New(ctx context.Context, user, pass, addr, dbName string) (*EventDataStore, error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, pass, addr, dbName)
 	db, err := sqlx.Open("pgx", dsn)
 	if err != nil {
-		return nil, &SQLError{Message: "can't create db store", Err: err}
+		return nil, NewError("can't create db store", err)
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		return nil, &SQLError{Message: "ping error", Err: err}
+		return nil, NewError("ping error", err)
 	}
 
-	return &Storage{db: db}, nil
+	return &EventDataStore{db: db}, nil
 }
 
-func (s *Storage) Close() error {
+func (s *EventDataStore) Close() error {
 	return s.db.Close()
 }
 
-func (s *Storage) NewEvent(ctx context.Context, e storage.Event) error {
-	_, err := s.db.ExecContext(
+func (s *EventDataStore) NewEvent(ctx context.Context, e app.Event) error {
+	isExist, err := s.eventIsExist(ctx, e.ID)
+	if err != nil {
+		return err
+	}
+
+	if isExist {
+		return storage.ErrEventAlreadyExist
+	}
+
+	_, err = s.db.ExecContext(
 		ctx,
 		`INSERT event 
     		SET id=?, 
@@ -67,13 +72,22 @@ func (s *Storage) NewEvent(ctx context.Context, e storage.Event) error {
 		e.RemindIn,
 	)
 	if err != nil {
-		return &SQLError{Message: "can't add event to db", Err: err}
+		return NewError("can't add event to db", err)
 	}
 	return nil
 }
 
-func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
-	_, err := s.db.ExecContext(
+func (s *EventDataStore) UpdateEvent(ctx context.Context, e app.Event) error {
+	isExist, err := s.eventIsExist(ctx, e.ID)
+	if err != nil {
+		return err
+	}
+
+	if !isExist {
+		return storage.ErrEventDoesNotExist
+	}
+
+	_, err = s.db.ExecContext(
 		ctx,
 		`UPDATE event
 			SET title=?,
@@ -91,23 +105,31 @@ func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
 		e.RemindIn,
 		e.ID,
 	)
-
 	if err != nil {
-		return &SQLError{Message: "can't update event", Err: err}
+		return NewError("can't update event", err)
 	}
 	return nil
 }
 
-func (s *Storage) RemoveEvent(ctx context.Context, id string) error {
-	_, err := s.db.ExecContext(ctx, "DELETE FROM event WHERE id=$1", id)
+func (s *EventDataStore) RemoveEvent(ctx context.Context, id string) error {
+	isExist, err := s.eventIsExist(ctx, id)
 	if err != nil {
-		return &SQLError{Message: "can't delete event from db", Err: err}
+		return err
+	}
+
+	if !isExist {
+		return storage.ErrEventDoesNotExist
+	}
+
+	_, err = s.db.ExecContext(ctx, "DELETE FROM event WHERE id=$1", id)
+	if err != nil {
+		return NewError("can't delete event from db", err)
 	}
 	return nil
 }
 
-func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storage.Event, error) {
-	var events []storage.Event
+func (s *EventDataStore) EventList(ctx context.Context, from int64, to int64) ([]app.Event, error) {
+	var events []app.Event
 	err := s.db.SelectContext(
 		ctx,
 		&events,
@@ -123,7 +145,31 @@ func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storag
 		from, to,
 	)
 	if err != nil {
-		return nil, &SQLError{Message: "can't select events from db", Err: err}
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrNoEvents
+		}
+		return nil, NewError("can't select events from db", err)
 	}
 	return events, nil
+}
+
+func (s *EventDataStore) eventIsExist(ctx context.Context, id string) (bool, error) {
+	var count int
+
+	err := s.db.SelectContext(
+		ctx,
+		&count,
+		`SELECT COUNT(*)
+			FROM event
+			WHERE id=$1`,
+		id,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, NewError("can't get event", err)
+	}
+
+	return true, nil
 }

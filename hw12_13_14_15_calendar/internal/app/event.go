@@ -1,4 +1,4 @@
-package storage
+package app
 
 type Event struct {
 	ID          string

@@ -7,19 +7,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage"
 	"github.com/stretchr/testify/suite"
 )
 
 type MemStoreSuite struct {
 	suite.Suite
-	store *Storage
+	store *EventDataStore
 }
 
 func (m *MemStoreSuite) SetupTest() {
 	m.store = New()
-	m.store.events = map[string]*storage.Event{
-		"1": &storage.Event{
+	m.store.events = map[string]*app.Event{
+		"1": &app.Event{
 			ID:          "1",
 			Title:       "Title1",
 			StartDate:   1,
@@ -28,7 +29,7 @@ func (m *MemStoreSuite) SetupTest() {
 			OwnerID:     "",
 			RemindIn:    5,
 		},
-		"2": &storage.Event{
+		"2": &app.Event{
 			ID:          "2",
 			Title:       "Title2",
 			StartDate:   5,
@@ -37,7 +38,7 @@ func (m *MemStoreSuite) SetupTest() {
 			OwnerID:     "",
 			RemindIn:    0,
 		},
-		"3": &storage.Event{
+		"3": &app.Event{
 			ID:          "3",
 			Title:       "Title3",
 			StartDate:   6,
@@ -46,7 +47,7 @@ func (m *MemStoreSuite) SetupTest() {
 			OwnerID:     "",
 			RemindIn:    0,
 		},
-		"4": &storage.Event{
+		"4": &app.Event{
 			ID:          "4",
 			Title:       "Title4",
 			StartDate:   10,
@@ -55,7 +56,7 @@ func (m *MemStoreSuite) SetupTest() {
 			OwnerID:     "",
 			RemindIn:    0,
 		},
-		"5": &storage.Event{
+		"5": &app.Event{
 			ID:          "5",
 			Title:       "Title5",
 			StartDate:   15,
@@ -68,7 +69,7 @@ func (m *MemStoreSuite) SetupTest() {
 }
 
 func (m *MemStoreSuite) TestInsertNewEventSuccess() {
-	newEvent := storage.Event{
+	newEvent := app.Event{
 		ID:          "6",
 		Title:       "Title6",
 		StartDate:   100500,
@@ -89,7 +90,7 @@ func (m *MemStoreSuite) TestInsertNewEventSuccess() {
 }
 
 func (m *MemStoreSuite) TestInsertNewEventWithFail() {
-	newEvent := storage.Event{
+	newEvent := app.Event{
 		ID:          "1",
 		Title:       "Title6",
 		StartDate:   100500,
@@ -102,11 +103,11 @@ func (m *MemStoreSuite) TestInsertNewEventWithFail() {
 	err := m.store.NewEvent(context.Background(), newEvent)
 
 	m.Require().Error(err)
-	m.Require().EqualError(ErrEventAlreadyExist, err.Error())
+	m.Require().EqualError(storage.ErrEventAlreadyExist, err.Error())
 }
 
 func (m *MemStoreSuite) TestUpdateEventSuccess() {
-	toUpdate := storage.Event{
+	toUpdate := app.Event{
 		ID:          "1",
 		Title:       "TitleUpdated",
 		StartDate:   1,
@@ -127,7 +128,7 @@ func (m *MemStoreSuite) TestUpdateEventSuccess() {
 }
 
 func (m *MemStoreSuite) TestUpdateEventWithError() {
-	toUpdate := storage.Event{
+	toUpdate := app.Event{
 		ID:          "6",
 		Title:       "Title6",
 		StartDate:   100500,
@@ -140,7 +141,7 @@ func (m *MemStoreSuite) TestUpdateEventWithError() {
 	err := m.store.UpdateEvent(context.Background(), toUpdate)
 
 	m.Require().Error(err)
-	m.Require().EqualError(ErrEventDoesNotExist, err.Error())
+	m.Require().EqualError(storage.ErrEventDoesNotExist, err.Error())
 }
 
 func (m *MemStoreSuite) TestRemoveEventSuccess() {
@@ -157,7 +158,7 @@ func (m *MemStoreSuite) TestRemoveEventWithError() {
 	err := m.store.RemoveEvent(context.Background(), "NaN")
 
 	m.Require().Error(err)
-	m.Require().EqualError(ErrEventDoesNotExist, err.Error())
+	m.Require().EqualError(storage.ErrEventDoesNotExist, err.Error())
 }
 
 func (m *MemStoreSuite) TestEventListSuccess() {
@@ -174,7 +175,7 @@ func (m *MemStoreSuite) TestEventListWithError() {
 	list, err := m.store.EventList(context.Background(), 500, 700)
 
 	m.Require().Error(err)
-	m.Require().EqualError(ErrNoEvents, err.Error())
+	m.Require().EqualError(storage.ErrNoEvents, err.Error())
 	m.Require().Nil(list)
 }
 
@@ -185,7 +186,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 	go func() {
 		defer wg.Done()
 		for i := 10; i < 20; i++ {
-			newEvent := storage.Event{
+			newEvent := app.Event{
 				ID:    fmt.Sprint(i),
 				Title: fmt.Sprintf("Title%d", i),
 			}
@@ -201,7 +202,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 	go func() {
 		defer wg.Done()
 		time.Sleep(200 * time.Millisecond)
-		toUpdate := storage.Event{
+		toUpdate := app.Event{
 			ID:          "1",
 			Title:       "TitleUpdate",
 			StartDate:   1,

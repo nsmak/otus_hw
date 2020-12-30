@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -25,14 +26,26 @@ func New(level int8, logFilePath string) (*Logger, error) {
 	return &Logger{logger: logger}, nil
 }
 
-func (l Logger) Info(msg string) {
-	l.logger.Info(msg)
+func (l *Logger) Info(msg string, fields ...zap.Field) {
+	l.logger.Info(msg, fields...)
 }
 
-func (l Logger) Error(msg string) {
-	l.logger.Error(msg)
+func (l *Logger) Error(msg string, fields ...zap.Field) {
+	l.logger.Error(msg, fields...)
 }
 
-func (l Logger) Warn(msg string) {
-	l.logger.Warn(msg)
+func (l *Logger) Warn(msg string, fields ...zap.Field) {
+	l.logger.Warn(msg, fields...)
+}
+
+func (l *Logger) String(key string, val string) zap.Field {
+	return zap.Field{Key: key, Type: zapcore.StringType, String: val} // nolint: exhaustivestruct
+}
+
+func (l *Logger) Int64(key string, val int64) zap.Field {
+	return zap.Field{Key: key, Type: zapcore.Int64Type, Integer: val} // nolint: exhaustivestruct
+}
+
+func (l *Logger) Duration(key string, val time.Duration) zap.Field {
+	return zap.Field{Key: key, Type: zapcore.DurationType, Integer: int64(val)} // nolint: exhaustivestruct
 }

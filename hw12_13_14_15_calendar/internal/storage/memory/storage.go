@@ -4,79 +4,61 @@ import (
 	"context"
 	"sync"
 
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/storage"
 )
 
-var (
-	ErrEventAlreadyExist = &MemDBError{Message: "event with this id already exist", Err: nil}
-	ErrEventDoesNotExist = &MemDBError{Message: "event does not exist", Err: nil}
-	ErrNoEvents          = &MemDBError{Message: "no one event", Err: nil}
-)
-
-type MemDBError struct {
-	Message string `json:"message"`
-	Err     error  `json:"err,omitempty"`
-}
-
-func (e *MemDBError) Error() string {
-	if e.Err != nil {
-		e.Message = e.Message + " --> " + e.Err.Error()
-	}
-	return e.Message
-}
-func (e *MemDBError) Unwrap() error {
-	return e.Err
-}
-
-type Storage struct {
+type EventDataStore struct {
 	mu     sync.RWMutex
-	events map[string]*storage.Event
+	events map[string]*app.Event
 }
 
-func New() *Storage {
-	return &Storage{}
+func New() *EventDataStore {
+	return &EventDataStore{
+		events: make(map[string]*app.Event),
+	}
 }
 
-func (s *Storage) NewEvent(ctx context.Context, e storage.Event) error {
+func (s *EventDataStore) NewEvent(ctx context.Context, e app.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.events[e.ID] != nil {
-		return ErrEventAlreadyExist
+		return storage.ErrEventAlreadyExist
 	}
 
 	s.events[e.ID] = &e
 	return nil
 }
 
-func (s *Storage) UpdateEvent(ctx context.Context, e storage.Event) error {
+func (s *EventDataStore) UpdateEvent(ctx context.Context, e app.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.events[e.ID] == nil {
-		return ErrEventDoesNotExist
+		return storage.ErrEventDoesNotExist
 	}
 
 	s.events[e.ID] = &e
 	return nil
 }
 
-func (s *Storage) RemoveEvent(ctx context.Context, id string) error {
+func (s *EventDataStore) RemoveEvent(ctx context.Context, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.events[id] == nil {
-		return ErrEventDoesNotExist
+		return storage.ErrEventDoesNotExist
 	}
 
 	delete(s.events, id)
 	return nil
 }
 
-func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storage.Event, error) {
+func (s *EventDataStore) EventList(ctx context.Context, from int64, to int64) ([]app.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	var events []storage.Event
+	var events []app.Event
 
 	for _, e := range s.events {
 		if e.StartDate >= from && e.StartDate <= to {
@@ -85,7 +67,7 @@ func (s *Storage) EventList(ctx context.Context, from int64, to int64) ([]storag
 	}
 
 	if len(events) == 0 {
-		return nil, ErrNoEvents
+		return nil, storage.ErrNoEvents
 	}
 	return events, nil
 }
