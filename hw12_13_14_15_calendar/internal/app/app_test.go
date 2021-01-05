@@ -129,7 +129,7 @@ func (s *AppSuite) TestEventsQuerySuccess() {
 
 	ctx := context.Background()
 
-	s.mockStore.EXPECT().EventList(ctx, from, to).Return(events, nil)
+	s.mockStore.EXPECT().EventListFilterByStartDate(ctx, from, to).Return(events, nil)
 	evs, err := s.app.Events(ctx, from, to)
 
 	s.Require().NoError(err)
@@ -143,7 +143,7 @@ func (s *AppSuite) TestEventsQueryFail() {
 	sErr := errors.New("store_error")
 	ctx := context.Background()
 
-	s.mockStore.EXPECT().EventList(ctx, from, to).Return(nil, sErr)
+	s.mockStore.EXPECT().EventListFilterByStartDate(ctx, from, to).Return(nil, sErr)
 	evs, err := s.app.Events(ctx, from, to)
 
 	s.Require().Error(err)
