@@ -6,9 +6,10 @@ package app_test
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	app "github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
-	reflect "reflect"
 )
 
 // MockStorage is a mock of Storage interface
@@ -34,19 +35,19 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
-// EventList mocks base method
+// EventListFilterByStartDate mocks base method
 func (m *MockStorage) EventList(arg0 context.Context, arg1, arg2 int64) ([]app.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EventList", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "EventListFilterByStartDate", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]app.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// EventList indicates an expected call of EventList
+// EventListFilterByStartDate indicates an expected call of EventListFilterByStartDate
 func (mr *MockStorageMockRecorder) EventList(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventList", reflect.TypeOf((*MockStorage)(nil).EventList), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventListFilterByStartDate", reflect.TypeOf((*MockStorage)(nil).EventList), arg0, arg1, arg2)
 }
 
 // NewEvent mocks base method

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -9,24 +9,24 @@ import (
 // При желании конфигурацию можно вынести в internal/config.
 // Организация конфига в main принуждает нас сужать API компонентов, использовать
 // при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
-type Config struct {
+type Calendar struct {
 	Logger     LoggerConf `json:"logger"`
 	RestServer RestConf   `json:"rest_server"`
 	GrpcServer GrpcConf   `json:"grpc_server"`
 	Database   DBConf     `json:"database"`
 }
 
-func NewConfig(filePath string) (Config, error) {
+func NewCalendar(filePath string) (Calendar, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return Config{}, fmt.Errorf("can't open config file: %w", err)
+		return Calendar{}, fmt.Errorf("can't open config file: %w", err)
 	}
 	defer file.Close()
 
-	var config Config
+	var config Calendar
 	err = json.NewDecoder(file).Decode(&config)
 	if err != nil {
-		return Config{}, fmt.Errorf("can't decode config: %w", err)
+		return Calendar{}, fmt.Errorf("can't decode config: %w", err)
 	}
 	return config, nil
 }

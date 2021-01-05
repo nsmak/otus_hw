@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/zap v1.10.0
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect
@@ -21,6 +22,5 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d // indirect
 	google.golang.org/grpc v1.34.0
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.1 // indirect
 	google.golang.org/protobuf v1.25.0
 )

@@ -1,4 +1,6 @@
-BIN := "./bin/calendar"
+BIN_CAL := "./bin/calendar"
+BIN_SCHEDULER := "./bin/scheduler"
+BIN_SENDER := "./bin/sender"
 DOCKER_IMG="calendar:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
@@ -7,11 +9,24 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 generate:
 	go generate ./internal/server/grpcsrv/server.go
 
-build:
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+build-calendar:
+	go build -v -o $(BIN_CAL) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
-run: build
-	$(BIN) -config ./configs/config.json
+build-scheduler:
+	go build -v -o $(BIN_SCHEDULER) -ldflags "$(LDFLAGS)" ./cmd/scheduler
+
+build-sender:
+	go build -v -o $(BIN_SENDER) -ldflags "$(LDFLAGS)" ./cmd/sender
+
+run: build-calendar
+	$(BIN_CAL) -config ./configs/calendar.json
+
+run: build-calendar
+	$(BIN_SCHEDULER) -config ./configs/scheduler.json
+
+run: build-sender
+	$(BIN_SENDER) -config ./configs/sender.json
+
 build-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
@@ -22,7 +37,7 @@ run-img: build-img
 	docker run $(DOCKER_IMG)
 
 version: build
-	$(BIN) version
+	$(BIN_CAL) version
 
 test:
 	go test -race ./internal/... ./pkg/...

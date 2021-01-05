@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/cmd/config"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/logger"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/server/grpcsrv"
@@ -20,7 +21,7 @@ import (
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "./configs/config.json", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/calendar.json", "Path to configuration file")
 }
 
 func main() {
@@ -31,12 +32,12 @@ func main() {
 		return
 	}
 
-	config, err := NewConfig(configFile)
+	cfg, err := config.NewCalendar(configFile)
 	if err != nil {
 		log.Fatalf("can't get config: %v", err)
 	}
 
-	logg, err := logger.New(config.Logger.Level, config.Logger.FilePath)
+	logg, err := logger.New(cfg.Logger.Level, cfg.Logger.FilePath)
 	if err != nil {
 		log.Fatalf("can't start logger %v\n", err)
 	}
@@ -44,9 +45,9 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	calendar := app.New(logg, startStorageService(ctx, config.Database))
-	restServer := rest.NewServer(rest.NewAPI(calendar), config.RestServer.Host, config.RestServer.Port, logg)
-	grpcServer := grpcsrv.NewServer(grpcsrv.NewAPI(calendar), config.GrpcServer.Host, config.GrpcServer.Port, logg)
+	calendar := app.New(logg, startStorageService(ctx, cfg.Database))
+	restServer := rest.NewServer(rest.NewAPI(calendar), cfg.RestServer.Host, cfg.RestServer.Port, logg)
+	grpcServer := grpcsrv.NewServer(grpcsrv.NewAPI(calendar), cfg.GrpcServer.Host, cfg.GrpcServer.Port, logg)
 
 	go func() {
 		signals := make(chan os.Signal, 1)
@@ -100,12 +101,12 @@ func startGRPCServer(ctx context.Context, s *grpcsrv.Server, logg app.Logger) {
 	}
 }
 
-func startStorageService(ctx context.Context, config DBConf) app.Storage {
+func startStorageService(ctx context.Context, cfg config.DBConf) app.Storage {
 	var s app.Storage
-	if config.InMem {
+	if cfg.InMem {
 		s = memorystorage.New()
 	} else {
-		sqlStore, err := sqlstorage.New(ctx, config.Username, config.Password, config.Address, config.DBName)
+		sqlStore, err := sqlstorage.New(ctx, cfg.Username, cfg.Password, cfg.Address, cfg.DBName)
 		if err != nil {
 			log.Fatalf("failed to start storage connection: " + err.Error())
 		}
