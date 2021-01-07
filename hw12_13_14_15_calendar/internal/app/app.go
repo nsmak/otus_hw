@@ -36,7 +36,8 @@ type Storage interface {
 	NewEvent(ctx context.Context, e Event) error
 	UpdateEvent(ctx context.Context, e Event) error
 	RemoveEvent(ctx context.Context, id string) error
-	EventList(ctx context.Context, from int64, to int64) ([]Event, error)
+	EventListFilterByStartDate(ctx context.Context, from int64, to int64) ([]Event, error)
+	EventListFilterByReminderIn(ctx context.Context, from int64, to int64) ([]Event, error)
 }
 
 type App struct {
@@ -83,7 +84,7 @@ func (a *App) RemoveEvent(ctx context.Context, id string) error {
 }
 
 func (a *App) Events(ctx context.Context, from int64, to int64) ([]Event, error) {
-	events, err := a.storage.EventList(ctx, from, to)
+	events, err := a.storage.EventListFilterByStartDate(ctx, from, to)
 	if err != nil {
 		return nil, &ProcessingError{
 			Message: "can't get events",

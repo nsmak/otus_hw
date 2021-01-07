@@ -162,7 +162,7 @@ func (m *MemStoreSuite) TestRemoveEventWithError() {
 }
 
 func (m *MemStoreSuite) TestEventListSuccess() {
-	list, err := m.store.EventList(context.Background(), 3, 10)
+	list, err := m.store.EventListFilterByStartDate(context.Background(), 3, 10)
 
 	m.Require().NoError(err)
 	m.Require().Len(list, 3)
@@ -172,7 +172,7 @@ func (m *MemStoreSuite) TestEventListSuccess() {
 }
 
 func (m *MemStoreSuite) TestEventListWithError() {
-	list, err := m.store.EventList(context.Background(), 500, 700)
+	list, err := m.store.EventListFilterByStartDate(context.Background(), 500, 700)
 
 	m.Require().Error(err)
 	m.Require().EqualError(storage.ErrNoEvents, err.Error())
@@ -220,7 +220,7 @@ func (m *MemStoreSuite) TestAsyncOperations() {
 	go func() {
 		defer wg.Done()
 		time.Sleep(150 * time.Millisecond)
-		list, err := m.store.EventList(context.Background(), 6, 10)
+		list, err := m.store.EventListFilterByStartDate(context.Background(), 6, 10)
 
 		m.Require().NoError(err)
 		m.Require().Len(list, 2)

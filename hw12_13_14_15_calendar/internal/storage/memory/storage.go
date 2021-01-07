@@ -55,13 +55,30 @@ func (s *EventDataStore) RemoveEvent(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *EventDataStore) EventList(ctx context.Context, from int64, to int64) ([]app.Event, error) {
+func (s *EventDataStore) EventListFilterByStartDate(ctx context.Context, from int64, to int64) ([]app.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	var events []app.Event
 
 	for _, e := range s.events {
 		if e.StartDate >= from && e.StartDate <= to {
+			events = append(events, *e)
+		}
+	}
+
+	if len(events) == 0 {
+		return nil, storage.ErrNoEvents
+	}
+	return events, nil
+}
+
+func (s *EventDataStore) EventListFilterByReminderIn(ctx context.Context, from int64, to int64) ([]app.Event, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var events []app.Event
+
+	for _, e := range s.events {
+		if e.RemindIn >= from && e.RemindIn <= to {
 			events = append(events, *e)
 		}
 	}

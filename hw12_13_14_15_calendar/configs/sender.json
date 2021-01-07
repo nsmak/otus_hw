@@ -1,0 +1,17 @@
+{
+  "rabbit_mq": {
+    "host": "localhost",
+    "port": "5672",
+    "username": "guest",
+    "password": "guest",
+    "exchange_name": "cal_exchange",
+    "exchange_type": "direct",
+    "queue_name": "cal_queue",
+    "routing_key": "cal_key",
+    "consumer_tag": "cal_tag"
+  },
+  "logger": {
+    "level": -1,
+    "file_path": "./logs/sender.log"
+  }
+}

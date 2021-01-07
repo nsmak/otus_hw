@@ -128,7 +128,7 @@ func (s *EventDataStore) RemoveEvent(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *EventDataStore) EventList(ctx context.Context, from int64, to int64) ([]app.Event, error) {
+func (s *EventDataStore) EventListFilterByStartDate(ctx context.Context, from int64, to int64) ([]app.Event, error) {
 	var events []app.Event
 	err := s.db.SelectContext(
 		ctx,
@@ -142,6 +142,31 @@ func (s *EventDataStore) EventList(ctx context.Context, from int64, to int64) ([
     		    remind_in
 			FROM event
 			WHERE UNIX_TIMESTAMP(start_date) >=$1 AND UNIX_TIMESTAMP(start_date) <=$2`,
+		from, to,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrNoEvents
+		}
+		return nil, NewError("can't select events from db", err)
+	}
+	return events, nil
+}
+
+func (s *EventDataStore) EventListFilterByReminderIn(ctx context.Context, from int64, to int64) ([]app.Event, error) {
+	var events []app.Event
+	err := s.db.SelectContext(
+		ctx,
+		&events,
+		`SELECT id, 
+       			title, 
+       			UNIX_TIMESTAMP(start_date), 
+    		    UNIX_TIMESTAMP(end_date), 
+    		    description, 
+    		    owner_id, 
+    		    remind_in
+			FROM event
+			WHERE UNIX_TIMESTAMP(remind_in) >=$1 AND UNIX_TIMESTAMP(remind_in) <=$2`,
 		from, to,
 	)
 	if err != nil {

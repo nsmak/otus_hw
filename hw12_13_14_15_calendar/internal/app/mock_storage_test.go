@@ -34,19 +34,34 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
-// EventList mocks base method
-func (m *MockStorage) EventList(arg0 context.Context, arg1, arg2 int64) ([]app.Event, error) {
+// EventListFilterByReminderIn mocks base method
+func (m *MockStorage) EventListFilterByReminderIn(arg0 context.Context, arg1, arg2 int64) ([]app.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EventList", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "EventListFilterByReminderIn", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]app.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// EventList indicates an expected call of EventList
-func (mr *MockStorageMockRecorder) EventList(arg0, arg1, arg2 interface{}) *gomock.Call {
+// EventListFilterByReminderIn indicates an expected call of EventListFilterByReminderIn
+func (mr *MockStorageMockRecorder) EventListFilterByReminderIn(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventList", reflect.TypeOf((*MockStorage)(nil).EventList), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventListFilterByReminderIn", reflect.TypeOf((*MockStorage)(nil).EventListFilterByReminderIn), arg0, arg1, arg2)
+}
+
+// EventListFilterByStartDate mocks base method
+func (m *MockStorage) EventListFilterByStartDate(arg0 context.Context, arg1, arg2 int64) ([]app.Event, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EventListFilterByStartDate", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]app.Event)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EventListFilterByStartDate indicates an expected call of EventListFilterByStartDate
+func (mr *MockStorageMockRecorder) EventListFilterByStartDate(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventListFilterByStartDate", reflect.TypeOf((*MockStorage)(nil).EventListFilterByStartDate), arg0, arg1, arg2)
 }
 
 // NewEvent mocks base method
