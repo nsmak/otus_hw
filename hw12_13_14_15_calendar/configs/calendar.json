@@ -1,7 +1,7 @@
 {
   "logger": {
     "level": -1,
-    "file_path": "./log/zap.log"
+    "file_path": "./zap.log"
   },
   "rest_server": {
     "host": "calendar",
