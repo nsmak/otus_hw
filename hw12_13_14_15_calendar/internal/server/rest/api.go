@@ -18,11 +18,11 @@ func NewError(msg string, err error) *APIError {
 	return &APIError{BaseError: app.BaseError{Message: msg, Err: err}}
 }
 
-type eventRemoveForm struct {
+type EventRemoveForm struct {
 	EventID string `json:"id"`
 }
 
-type eventsQueryForm struct {
+type EventsQueryForm struct {
 	From int64 `json:"from"`
 	To   int64 `json:"to"`
 }
@@ -70,7 +70,7 @@ func (a *API) updateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) removeEvent(w http.ResponseWriter, r *http.Request) {
-	var form eventRemoveForm
+	var form EventRemoveForm
 	if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
 		sendErrorJSON(w, r, http.StatusBadRequest, err, "can't parse")
 		return
@@ -89,7 +89,7 @@ func (a *API) removeEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) events(w http.ResponseWriter, r *http.Request) {
-	var query eventsQueryForm
+	var query EventsQueryForm
 	if err := schema.NewDecoder().Decode(&query, r.URL.Query()); err != nil {
 		sendErrorJSON(w, r, http.StatusBadRequest, err, "can't query params")
 		return
@@ -97,11 +97,12 @@ func (a *API) events(w http.ResponseWriter, r *http.Request) {
 
 	events, err := a.application.Events(r.Context(), query.From, query.To)
 	if err != nil {
-		statusCode := http.StatusBadRequest
-		if errors.Is(err, storage.ErrNoEvents) {
-			statusCode = http.StatusNotFound
-		}
-		sendErrorJSON(w, r, statusCode, err, "can't get events")
+		sendErrorJSON(w, r, http.StatusBadRequest, err, "can't get events")
+		return
+	}
+
+	if len(events) == 0 {
+		sendErrorJSON(w, r, http.StatusNotFound, err, "can't get events")
 		return
 	}
 

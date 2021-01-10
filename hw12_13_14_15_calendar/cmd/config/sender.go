@@ -9,6 +9,7 @@ import (
 type Sender struct {
 	Logger   LoggerConf `json:"logger"`
 	RabbitMQ Rabbit     `json:"rabbit_mq"`
+	Database DBConf     `json:"database"`
 }
 
 type Rabbit struct {

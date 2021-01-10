@@ -2,8 +2,8 @@
 CREATE TABLE IF NOT EXISTS  event (
     id varchar(36) NOT NULL,
     title varchar(100) NOT NULL DEFAULT '',
-    start_date timestamp NOT NULL,
-    end_date timestamp NOT NULL,
+    start_date integer NOT NULL,
+    end_date integer NOT NULL,
     description text NOT NULL DEFAULT '',
     owner_id varchar(36) NOT NULL DEFAULT '',
     remind_in integer NOT NULL DEFAULT 0,
