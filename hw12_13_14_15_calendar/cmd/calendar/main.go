@@ -51,7 +51,7 @@ func main() {
 
 	go func() {
 		signals := make(chan os.Signal, 1)
-		signal.Notify(signals)
+		signal.Notify(signals, os.Interrupt)
 
 		<-signals
 		signal.Stop(signals)

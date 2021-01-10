@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/nsmak/otus_hw/hw12_13_14_15_calendar/internal/app"
@@ -49,6 +50,7 @@ func (s *IntegrationSuite) SetupTest() {
 
 func (s *IntegrationSuite) TearDownTest() {
 	s.removeDefaultEvents()
+	s.removeNotifications()
 	_ = s.db.Close()
 	_ = s.storage.Close()
 }
@@ -78,6 +80,24 @@ func (s *IntegrationSuite) removeDefaultEvents() {
 	for _, e := range s.events {
 		_ = s.storage.RemoveEvent(context.Background(), e.ID)
 	}
+}
+
+func (s *IntegrationSuite) removeNotifications() {
+	_, _ = s.db.Exec("DELETE FROM notification")
+}
+
+func (s *IntegrationSuite) notificationIsExist(eventID string) bool {
+	var count int
+
+	_ = s.db.Get(
+		&count,
+		`SELECT COUNT(*)
+			FROM notification
+			WHERE id=$1`,
+		eventID,
+	)
+
+	return count > 0
 }
 
 func (s *IntegrationSuite) getEvent(id string) (app.Event, error) {
@@ -239,6 +259,27 @@ func (s *IntegrationSuite) TestEventsQueryFail() {
 
 	s.Require().NoError(err)
 	s.Require().Equal(http.StatusNotFound, resp.StatusCode)
+}
+
+func (s *IntegrationSuite) TestNotification() {
+	newEvent := app.Event{
+		ID:          "unique_event_id_notification",
+		Title:       "Event_Title_test",
+		StartDate:   100500,
+		EndDate:     300800,
+		Description: "Event_Description_test",
+		OwnerID:     "unique_owner_uid_test",
+		RemindIn:    time.Now().Add(5 * time.Second).Unix(),
+	}
+	err := s.storage.NewEvent(context.Background(), newEvent)
+
+	s.Require().NoError(err)
+
+	s.events = append(s.events, newEvent)
+
+	time.Sleep(15 * time.Second)
+
+	s.Require().True(s.notificationIsExist(newEvent.ID))
 }
 
 func TestIntegrationSuite(t *testing.T) {

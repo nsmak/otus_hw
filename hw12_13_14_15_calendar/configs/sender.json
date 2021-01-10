@@ -11,7 +11,7 @@
     "consumer_tag": "cal_tag"
   },
   "database": {
-    "in_mem": true,
+    "in_mem": false,
     "username": "postgres",
     "password": "password",
     "address": "db:5432",
