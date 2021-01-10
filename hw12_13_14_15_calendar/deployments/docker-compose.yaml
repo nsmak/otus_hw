@@ -7,9 +7,9 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
     networks:
-      cal:
-        aliases:
-          - db
+        cal:
+          aliases:
+              - db
     environment:
       POSTGRES_PASSWORD: password
     ports:
@@ -22,9 +22,7 @@ services:
     depends_on:
       - db
     networks:
-      cal:
-        aliases:
-          - db_migrations
+        - cal
 
   mq:
     image: rabbitmq:3-management-alpine
@@ -81,7 +79,7 @@ services:
     restart: always
 
 volumes:
-  dbdata:
+    dbdata:
 
 networks:
   cal:
