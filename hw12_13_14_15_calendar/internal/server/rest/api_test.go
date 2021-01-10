@@ -252,7 +252,7 @@ func TestEventsFailStore(t *testing.T) {
 
 	resp, err := http.Get(server.URL + "/events?from=900800&to=10000200")
 	require.NoError(t, err)
-	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
