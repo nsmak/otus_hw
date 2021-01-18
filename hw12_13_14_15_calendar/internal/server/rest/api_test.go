@@ -85,7 +85,7 @@ func TestCreateEventFailStore(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -100,7 +100,7 @@ func TestCreateEventInvalidData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -150,7 +150,7 @@ func TestUpdateEventFailStore(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -165,7 +165,7 @@ func TestUpdateEventInvalidData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -176,7 +176,7 @@ func TestRemoveEventSuccess(t *testing.T) {
 	server := testServer(true)
 	defer server.Close()
 
-	form := eventRemoveForm{
+	form := EventRemoveForm{
 		EventID: "unique_event_id_1",
 	}
 
@@ -192,7 +192,7 @@ func TestRemoveEventFailStore(t *testing.T) {
 	server := testServer(true)
 	defer server.Close()
 
-	form := eventRemoveForm{
+	form := EventRemoveForm{
 		EventID: "unique_event_id_10",
 	}
 
@@ -203,7 +203,7 @@ func TestRemoveEventFailStore(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -218,7 +218,7 @@ func TestRemoveEventInvalidData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -252,9 +252,9 @@ func TestEventsFailStore(t *testing.T) {
 
 	resp, err := http.Get(server.URL + "/events?from=900800&to=10000200")
 	require.NoError(t, err)
-	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)
@@ -269,7 +269,7 @@ func TestEventsInvalidData(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var parsedResp response
+	var parsedResp Response
 	err = json.NewDecoder(resp.Body).Decode(&parsedResp)
 	require.NoError(t, err)
 	require.Nil(t, parsedResp.Data)

@@ -1,1 +1,87 @@
 version: "3"
+
+services:
+  db:
+    image: postgres:12-alpine
+    restart: always
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+        cal:
+          aliases:
+              - db
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+
+  db_migrations:
+    build:
+      context: ..
+      dockerfile: ./deployments/migrations/Dockerfile
+    depends_on:
+      - db
+    networks:
+        - cal
+
+  mq:
+    image: rabbitmq:3-management-alpine
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      cal:
+        aliases:
+          - mq
+    ports:
+      - '5672:5672'
+
+  calendar:
+    build:
+      context: ..
+      dockerfile: ./deployments/calendar/Dockerfile
+    depends_on:
+      - db_migrations
+    restart: always
+    networks:
+      cal:
+        aliases:
+          - calendar
+    ports:
+      - '8888:8888'
+      - '15443:15443'
+
+  scheduler:
+    build:
+      context: ..
+      dockerfile: ./deployments/scheduler/Dockerfile
+    depends_on:
+      - db_migrations
+      - mq
+    networks:
+      cal:
+        aliases:
+          - scheduler
+    restart: always
+
+  sender:
+    build:
+      context: ..
+      dockerfile: ./deployments/sender/Dockerfile
+    depends_on:
+      - mq
+      - db_migrations
+    networks:
+      cal:
+        aliases:
+          - sender
+    restart: always
+
+volumes:
+    dbdata:
+
+networks:
+  cal:
+    external:
+      name: cal_network

@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  integration-tests:
+    build:
+      context: ..
+      dockerfile: ./deployments/tests/Dockerfile
+    networks:
+      cal:
+        aliases:
+          - db
+
+networks:
+  cal:
+    external:
+      name: cal_network

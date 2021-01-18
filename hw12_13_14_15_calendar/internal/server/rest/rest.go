@@ -22,7 +22,7 @@ func (k *ContextKey) String() string {
 	return k.name
 }
 
-type response struct {
+type Response struct {
 	Data  interface{} `json:"data"`
 	Error JSON        `json:"error"`
 }
@@ -33,7 +33,7 @@ func status(r *http.Request, status int) {
 
 func sendErrorJSON(w http.ResponseWriter, r *http.Request, httpStatusCode int, err error, details string) {
 	e := NewError(details, err)
-	resp := response{
+	resp := Response{
 		Data:  nil,
 		Error: JSON{"message": e.Error()},
 	}
@@ -42,7 +42,7 @@ func sendErrorJSON(w http.ResponseWriter, r *http.Request, httpStatusCode int, e
 }
 
 func sendDataJSON(w http.ResponseWriter, r *http.Request, httpStatusCode int, data interface{}) { // nolint: unparam
-	resp := response{Data: data, Error: nil}
+	resp := Response{Data: data, Error: nil}
 	status(r, httpStatusCode)
 	sendJSON(w, r, resp)
 }

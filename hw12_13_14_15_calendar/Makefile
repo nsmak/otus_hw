@@ -39,8 +39,17 @@ run-img: build-img
 version: build
 	$(BIN_CAL) version
 
+up:
+	sh ./deployments/deploy.sh up
+
+down:
+	sh ./deployments/deploy.sh down
+
 test:
 	go test -race ./internal/... ./pkg/...
+
+integration-tests:
+	sh ./deployments/deploy.sh tests
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.33.0

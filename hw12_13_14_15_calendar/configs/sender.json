@@ -1,6 +1,6 @@
 {
   "rabbit_mq": {
-    "host": "localhost",
+    "host": "mq",
     "port": "5672",
     "username": "guest",
     "password": "guest",
@@ -10,8 +10,15 @@
     "routing_key": "cal_key",
     "consumer_tag": "cal_tag"
   },
+  "database": {
+    "in_mem": false,
+    "username": "postgres",
+    "password": "password",
+    "address": "db:5432",
+    "db_name": "postgres"
+  },
   "logger": {
     "level": -1,
-    "file_path": "./logs/sender.log"
+    "file_path": "./sender.log"
   }
 }

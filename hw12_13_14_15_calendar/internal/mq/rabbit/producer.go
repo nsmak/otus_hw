@@ -20,12 +20,7 @@ func NewProducer(cfg config.Rabbit) (*Producer, error) {
 	if err != nil {
 		return nil, NewError("can't connect to rmq", err)
 	}
-
-	channel, err := declareChannel(cfg, conn)
-	if err != nil {
-		return nil, NewError("can't create channel", err)
-	}
-	return &Producer{conn: conn, channel: channel}, nil
+	return &Producer{conn: conn, cfg: cfg}, nil
 }
 
 func (p *Producer) CloseConn() error {
